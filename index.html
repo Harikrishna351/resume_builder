@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InstantResume | ATS-Friendly Resume Builder</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>ProResume Builder | ATS-Optimized Templates</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -13,135 +15,214 @@
         }
 
         :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary: #ec4899;
-            --bg: #fafafa;
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --bg: #f8fafc;
             --surface: #ffffff;
-            --text: #1f2937;
-            --text-light: #6b7280;
-            --border: #e5e7eb;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--bg);
+            background: var(--bg);
             color: var(--text);
             line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        h1, h2, h3 {
-            font-family: 'Playfair Display', serif;
-            font-weight: 600;
         }
 
         /* Navigation */
-        nav {
+        .navbar {
             position: fixed;
             top: 0;
             width: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+            background: white;
             border-bottom: 1px solid var(--border);
             z-index: 1000;
-            padding: 1rem 5%;
+            padding: 0 2rem;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
-        .nav-container {
-            max-width: 1400px;
-            margin: 0 auto;
+        .nav-left {
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 2rem;
         }
 
         .logo {
             font-family: 'Playfair Display', serif;
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             font-weight: 700;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--primary);
             text-decoration: none;
         }
 
-        .ats-badge {
-            display: inline-flex;
+        .back-btn {
+            display: flex;
             align-items: center;
             gap: 0.5rem;
-            background: rgba(16, 185, 129, 0.1);
-            color: #059669;
+            color: var(--text-light);
+            text-decoration: none;
+            font-size: 0.9rem;
+            cursor: pointer;
             padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+            border: none;
+            background: none;
+        }
+
+        .back-btn:hover {
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .ats-score {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(16, 185, 129, 0.1);
             border-radius: 20px;
             font-size: 0.85rem;
-            font-weight: 500;
-            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        .download-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .download-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .download-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 0.5rem;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            min-width: 200px;
+            display: none;
+            overflow: hidden;
+        }
+
+        .download-menu.active {
+            display: block;
+        }
+
+        .download-option {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .download-option:hover {
+            background: var(--bg);
+        }
+
+        .download-option:first-child {
+            border-bottom: 1px solid var(--border);
         }
 
         /* Template Gallery */
         .template-gallery {
-            display: none;
-            padding: 8rem 5% 4rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .template-gallery.active {
-            display: block;
+            padding-top: 64px;
+            min-height: 100vh;
         }
 
         .gallery-header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white;
+            padding: 4rem 2rem;
             text-align: center;
-            margin-bottom: 3rem;
         }
 
         .gallery-header h1 {
             font-size: 2.5rem;
             margin-bottom: 1rem;
+            font-weight: 600;
         }
 
         .gallery-header p {
-            color: var(--text-light);
             font-size: 1.1rem;
+            opacity: 0.9;
             max-width: 600px;
             margin: 0 auto;
         }
 
-        .ats-features {
+        .filters {
             display: flex;
             justify-content: center;
-            gap: 2rem;
-            margin: 2rem 0;
+            gap: 1rem;
+            margin-top: 2rem;
             flex-wrap: wrap;
         }
 
-        .ats-feature {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+        .filter-btn {
+            padding: 0.5rem 1.5rem;
+            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-radius: 20px;
+            cursor: pointer;
             font-size: 0.9rem;
-            color: var(--text-light);
+            transition: all 0.2s;
         }
 
-        .ats-feature::before {
-            content: "✓";
-            color: #10b981;
-            font-weight: bold;
+        .filter-btn.active, .filter-btn:hover {
+            background: white;
+            color: #1e293b;
+        }
+
+        .templates-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
         }
 
         .templates-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 2rem;
-            margin-top: 3rem;
         }
 
         .template-card {
             background: white;
-            border-radius: 16px;
+            border-radius: 12px;
             overflow: hidden;
             box-shadow: var(--shadow);
             transition: all 0.3s;
@@ -150,19 +231,32 @@
         }
 
         .template-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-4px);
             box-shadow: var(--shadow-lg);
             border-color: var(--primary);
         }
 
         .template-preview {
-            height: 400px;
-            background: #f3f4f6;
+            height: 360px;
+            background: #f1f5f9;
             position: relative;
             overflow: hidden;
         }
 
-        .template-preview img {
+        .template-badge {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: var(--success);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            z-index: 10;
+        }
+
+        .template-image {
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -173,187 +267,102 @@
             padding: 1.5rem;
         }
 
-        .template-info h3 {
-            font-size: 1.25rem;
+        .template-name {
+            font-weight: 600;
+            font-size: 1.1rem;
             margin-bottom: 0.5rem;
         }
 
-        .template-info p {
+        .template-desc {
             color: var(--text-light);
             font-size: 0.9rem;
             margin-bottom: 1rem;
         }
 
-        .template-tags {
+        .template-meta {
             display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 0.8rem;
+            color: var(--text-light);
         }
 
-        .tag {
-            background: rgba(99, 102, 241, 0.1);
-            color: var(--primary);
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 500;
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
         }
 
-        .use-template-btn {
-            width: 100%;
-            padding: 0.75rem;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 1rem;
-            transition: all 0.3s;
-        }
-
-        .use-template-btn:hover {
-            background: var(--primary-dark);
-        }
-
-        /* Sample Resume Previews */
-        .sample-resume {
-            background: white;
-            padding: 2rem;
-            height: 100%;
-            font-family: 'Roboto', sans-serif;
-            font-size: 0.7rem;
-            line-height: 1.4;
-            color: #333;
-        }
-
-        .sample-classic {
-            font-family: 'Times New Roman', serif;
-        }
-
-        .sample-classic .sample-header {
-            text-align: center;
-            border-bottom: 2px solid #333;
-            padding-bottom: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .sample-classic .sample-name {
-            font-size: 1.5rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .sample-modern {
-            font-family: 'Inter', sans-serif;
-        }
-
-        .sample-modern .sample-header {
-            background: linear-gradient(135deg, #6366f1, #ec4899);
-            color: white;
-            padding: 1.5rem;
-            margin: -2rem -2rem 1rem -2rem;
-        }
-
-        .sample-minimal {
-            font-family: 'Inter', sans-serif;
-        }
-
-        .sample-minimal .sample-header {
-            border-bottom: 1px solid #e5e7eb;
-            padding-bottom: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .sample-minimal .sample-name {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.8rem;
-            font-weight: 300;
-        }
-
-        .sample-section {
-            margin-bottom: 1rem;
-        }
-
-        .sample-section-title {
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 0.65rem;
-            letter-spacing: 1px;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 0.25rem;
-            margin-bottom: 0.5rem;
-            color: #6366f1;
-        }
-
-        .sample-item {
-            margin-bottom: 0.75rem;
-        }
-
-        .sample-item-title {
-            font-weight: bold;
-            font-size: 0.75rem;
-        }
-
-        .sample-item-subtitle {
-            font-style: italic;
-            color: #666;
-            font-size: 0.65rem;
-        }
-
-        /* Builder Interface */
+        /* Builder Layout */
         .builder-container {
             display: none;
-            height: calc(100vh - 70px);
-            margin-top: 70px;
-            background: var(--bg);
+            padding-top: 64px;
+            height: 100vh;
         }
 
         .builder-container.active {
             display: flex;
         }
 
-        .sidebar {
-            width: 400px;
-            background: var(--surface);
+        .builder-sidebar {
+            width: 380px;
+            background: white;
             border-right: 1px solid var(--border);
+            height: calc(100vh - 64px);
             overflow-y: auto;
-            padding: 2rem;
+            display: flex;
+            flex-direction: column;
         }
 
-        .progress-bar {
-            height: 4px;
-            background: var(--border);
-            border-radius: 2px;
-            margin-bottom: 2rem;
-            overflow: hidden;
+        .section-nav {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
         }
 
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            width: 0%;
-            transition: width 0.3s;
+        .nav-pill {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .nav-pill:hover, .nav-pill.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .form-content {
+            padding: 1.5rem;
+            flex: 1;
         }
 
         .form-section {
             margin-bottom: 2rem;
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
         }
 
         .form-section h3 {
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-light);
-            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            color: var(--text);
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.25rem;
         }
 
         .form-group label {
@@ -365,23 +374,21 @@
         }
 
         .form-group input,
-        .form-group textarea,
-        .form-group select {
+        .form-group textarea {
             width: 100%;
-            padding: 0.75rem 1rem;
+            padding: 0.75rem;
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 6px;
             font-family: inherit;
             font-size: 0.95rem;
-            transition: all 0.3s;
-            background: var(--bg);
+            transition: all 0.2s;
         }
 
         .form-group input:focus,
         .form-group textarea:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
         .form-group textarea {
@@ -389,14 +396,10 @@
             min-height: 100px;
         }
 
-        .tip-box {
-            background: rgba(99, 102, 241, 0.05);
-            border-left: 3px solid var(--primary);
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-            border-radius: 0 8px 8px 0;
-            font-size: 0.85rem;
+        .hint {
+            font-size: 0.8rem;
             color: var(--text-light);
+            margin-top: 0.25rem;
         }
 
         .add-btn {
@@ -405,22 +408,45 @@
             border: 2px dashed var(--border);
             background: transparent;
             color: var(--text-light);
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 0.9rem;
-            transition: all 0.3s;
-            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
         }
 
         .add-btn:hover {
             border-color: var(--primary);
             color: var(--primary);
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        .experience-item, .education-item {
+            background: var(--bg);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .remove-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 0.8rem;
         }
 
         /* Preview Area */
-        .preview-area {
+        .preview-container {
             flex: 1;
-            background: #f3f4f6;
+            background: #e2e8f0;
             padding: 2rem;
             overflow-y: auto;
             display: flex;
@@ -428,50 +454,18 @@
             align-items: flex-start;
         }
 
-        .resume-preview {
+        .resume-page {
             width: 210mm;
             min-height: 297mm;
             background: white;
-            box-shadow: var(--shadow-lg);
-            padding: 3rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            padding: 2.5rem;
             position: relative;
-            transform-origin: top;
         }
 
-        .template-selector {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            background: white;
-            padding: 1rem;
-            border-radius: 12px;
-            box-shadow: var(--shadow-lg);
-            display: flex;
-            gap: 1rem;
-        }
-
-        .template-btn {
-            width: 60px;
-            height: 80px;
-            border: 2px solid transparent;
-            border-radius: 8px;
-            cursor: pointer;
-            overflow: hidden;
-            position: relative;
-            transition: all 0.3s;
-        }
-
-        .template-btn.active {
-            border-color: var(--primary);
-        }
-
-        .template-btn:hover {
-            transform: scale(1.05);
-        }
-
-        /* Resume Templates */
+        /* Resume Styles */
         .resume-header {
-            border-bottom: 2px solid var(--text);
+            border-bottom: 2px solid #1e293b;
             padding-bottom: 1.5rem;
             margin-bottom: 1.5rem;
         }
@@ -479,104 +473,120 @@
         .resume-name {
             font-size: 2rem;
             font-weight: 700;
+            color: #1e293b;
             margin-bottom: 0.5rem;
-            color: var(--text);
+        }
+
+        .resume-title {
+            font-size: 1.1rem;
+            color: #64748b;
+            margin-bottom: 0.75rem;
         }
 
         .resume-contact {
             display: flex;
-            gap: 1rem;
             flex-wrap: wrap;
+            gap: 1rem;
             font-size: 0.9rem;
-            color: var(--text-light);
+            color: #64748b;
         }
 
         .resume-section {
             margin-bottom: 1.5rem;
         }
 
-        .resume-section h3 {
-            font-size: 1.1rem;
-            font-weight: 600;
+        .section-title {
+            font-size: 1rem;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid #e2e8f0;
             padding-bottom: 0.5rem;
             margin-bottom: 1rem;
-            color: var(--primary);
+            color: #1e293b;
         }
 
-        .resume-item {
-            margin-bottom: 1rem;
+        .job-item {
+            margin-bottom: 1.25rem;
         }
 
-        .resume-item-header {
+        .job-header {
             display: flex;
             justify-content: space-between;
             margin-bottom: 0.25rem;
+            flex-wrap: wrap;
         }
 
-        .resume-item-title {
+        .job-title {
             font-weight: 600;
-            color: var(--text);
+            color: #1e293b;
         }
 
-        .resume-item-date {
-            color: var(--text-light);
+        .job-date {
+            color: #64748b;
             font-size: 0.9rem;
         }
 
-        .resume-item-subtitle {
-            color: var(--text-light);
-            font-size: 0.95rem;
+        .job-company {
+            color: #64748b;
+            font-style: italic;
             margin-bottom: 0.5rem;
         }
 
-        .resume-item-desc {
-            font-size: 0.9rem;
-            color: var(--text);
-            line-height: 1.5;
+        .job-description {
+            color: #334155;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            white-space: pre-line;
         }
 
-        .skills-list {
+        .skills-container {
             display: flex;
             flex-wrap: wrap;
             gap: 0.5rem;
         }
 
         .skill-tag {
-            background: rgba(99, 102, 241, 0.1);
-            color: var(--primary);
+            background: #f1f5f9;
+            color: #475569;
             padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
         }
 
         /* Template Variations */
         .template-modern .resume-header {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            margin: -2.5rem -2.5rem 2rem -2.5rem;
+            padding: 2.5rem;
             border-bottom: none;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 2rem;
-            margin: -3rem -3rem 2rem -3rem;
         }
 
-        .template-modern .resume-name {
-            color: white;
-        }
-
+        .template-modern .resume-name,
+        .template-modern .resume-title,
         .template-modern .resume-contact {
-            color: rgba(255,255,255,0.9);
+            color: white;
+        }
+
+        .template-modern .section-title {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+        }
+
+        .template-minimal .resume-header {
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
         }
 
         .template-minimal .resume-name {
             font-family: 'Playfair Display', serif;
             font-size: 2.5rem;
-            font-weight: 300;
+            font-weight: 400;
         }
 
-        .template-minimal .resume-header {
-            border-bottom: 1px solid var(--border);
+        .template-minimal .resume-contact {
+            justify-content: center;
         }
 
         /* Responsive */
@@ -585,497 +595,733 @@
                 flex-direction: column;
             }
 
-            .sidebar {
+            .builder-sidebar {
                 width: 100%;
                 height: 50vh;
             }
 
-            .preview-area {
+            .preview-container {
                 height: 50vh;
             }
 
-            .resume-preview {
-                transform: scale(0.5);
+            .resume-page {
+                transform: scale(0.6);
+                transform-origin: top center;
             }
         }
 
-        @media (max-width: 640px) {
-            .templates-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .back-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
             color: var(--text-light);
-            text-decoration: none;
-            margin-bottom: 2rem;
-            font-size: 0.9rem;
         }
 
-        .back-btn:hover {
-            color: var(--primary);
+        .sample-data-banner {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
         }
 
-        .hidden {
-            display: none !important;
+        .sample-data-banner button {
+            background: #f59e0b;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
         }
     </style>
 </head>
 <body>
 
     <!-- Navigation -->
-    <nav>
-        <div class="nav-container">
-            <a href="#" class="logo">InstantResume</a>
-            <div class="ats-badge">
+    <nav class="navbar" id="navbar" style="display: none;">
+        <div class="nav-left">
+            <a href="#" class="logo">ProResume</a>
+            <button class="back-btn" onclick="showGallery()">
+                ← Back to Templates
+            </button>
+        </div>
+        <div class="nav-right">
+            <div class="ats-score">
                 <span>✓</span>
-                <span>ATS-Optimized Templates</span>
+                <span>ATS Score: <span id="ats-percent">85</span>%</span>
+            </div>
+            <div style="position: relative;">
+                <button class="download-btn" onclick="toggleDownloadMenu()">
+                    Download ↓
+                </button>
+                <div class="download-menu" id="downloadMenu">
+                    <div class="download-option" onclick="downloadPDF()">
+                        <span>📄</span>
+                        <span>Download PDF</span>
+                    </div>
+                    <div class="download-option" onclick="downloadWord()">
+                        <span>📝</span>
+                        <span>Download Word (.doc)</span>
+                    </div>
+                </div>
             </div>
         </div>
     </nav>
 
     <!-- Template Gallery -->
-    <section class="template-gallery active" id="template-gallery">
-        <div class="back-btn hidden" onclick="showGallery()" style="cursor: pointer;">
-            ← Back to Templates
-        </div>
-
+    <div class="template-gallery" id="templateGallery">
         <div class="gallery-header">
-            <h1>Choose Your Template</h1>
-            <p>All templates are ATS-friendly and designed to pass automated screening systems while impressing human recruiters.</p>
-
-            <div class="ats-features">
-                <div class="ats-feature">Single-column layout</div>
-                <div class="ats-feature">Standard fonts</div>
-                <div class="ats-feature">No graphics/tables</div>
-                <div class="ats-feature">Keyword optimized</div>
-                <div class="ats-feature">PDF export ready</div>
+            <h1>Choose a Professional Template</h1>
+            <p>ATS-friendly designs that get past automated screening and impress recruiters</p>
+            <div class="filters">
+                <button class="filter-btn active">All Templates</button>
+                <button class="filter-btn">Professional</button>
+                <button class="filter-btn">Modern</button>
+                <button class="filter-btn">Simple</button>
             </div>
         </div>
 
-        <div class="templates-grid">
-            <!-- Classic Template -->
-            <div class="template-card" onclick="selectTemplate('classic')">
-                <div class="template-preview">
-                    <div class="sample-resume sample-classic">
-                        <div class="sample-header">
-                            <div class="sample-name">JOHN SMITH</div>
-                            <div style="font-size: 0.65rem; color: #666;">john.smith@email.com | (555) 123-4567 | New York, NY</div>
-                        </div>
-                        <div class="sample-section">
-                            <div class="sample-section-title">Professional Summary</div>
-                            <div style="font-size: 0.65rem;">Results-driven professional with 5+ years of experience...</div>
-                        </div>
-                        <div class="sample-section">
-                            <div class="sample-section-title">Experience</div>
-                            <div class="sample-item">
-                                <div class="sample-item-title">Senior Manager | ABC Corp</div>
-                                <div class="sample-item-subtitle">2020 - Present</div>
-                                <div style="font-size: 0.6rem;">• Increased revenue by 40% through strategic initiatives...</div>
+        <div class="templates-container">
+            <div class="templates-grid">
+                <!-- Template 1: Professional -->
+                <div class="template-card" onclick="selectTemplate('professional', 'Professional')">
+                    <div class="template-preview">
+                        <div class="template-badge">ATS 98%</div>
+                        <div style="padding: 2rem; height: 100%; background: white; font-size: 0.6rem; line-height: 1.4;">
+                            <div style="border-bottom: 2px solid #333; padding-bottom: 1rem; margin-bottom: 1rem;">
+                                <div style="font-size: 1.2rem; font-weight: bold; text-transform: uppercase;">JOHN SMITH</div>
+                                <div style="color: #666; margin-top: 0.25rem;">Senior Marketing Manager</div>
+                                <div style="color: #999; font-size: 0.5rem; margin-top: 0.5rem;">john@email.com | (555) 123-4567 | New York, NY</div>
                             </div>
-                        </div>
-                        <div class="sample-section">
-                            <div class="sample-section-title">Education</div>
-                            <div class="sample-item">
-                                <div class="sample-item-title">Bachelor of Science in Business</div>
-                                <div class="sample-item-subtitle">University Name, 2019</div>
+                            <div style="margin-bottom: 1rem;">
+                                <div style="font-weight: bold; text-transform: uppercase; font-size: 0.55rem; border-bottom: 1px solid #ddd; padding-bottom: 0.25rem; margin-bottom: 0.5rem;">Professional Summary</div>
+                                <div style="color: #555;">Results-driven marketing professional with 8+ years of experience...</div>
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <div style="font-weight: bold; text-transform: uppercase; font-size: 0.55rem; border-bottom: 1px solid #ddd; padding-bottom: 0.25rem; margin-bottom: 0.5rem;">Experience</div>
+                                <div style="margin-bottom: 0.5rem;">
+                                    <div style="font-weight: 600;">Marketing Director | ABC Corp</div>
+                                    <div style="color: #666; font-size: 0.5rem;">2019 - Present</div>
+                                    <div style="color: #555; margin-top: 0.25rem;">• Increased revenue by 40% through strategic campaigns</div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="template-info">
-                    <h3>Classic Professional</h3>
-                    <p>Traditional, elegant format perfect for conservative industries like finance, law, and healthcare.</p>
-                    <div class="template-tags">
-                        <span class="tag">ATS Score: 98%</span>
-                        <span class="tag">Traditional</span>
-                        <span class="tag">Easy to scan</span>
+                    <div class="template-info">
+                        <div class="template-name">Professional Classic</div>
+                        <div class="template-desc">Traditional layout perfect for conservative industries like finance, law, and healthcare.</div>
+                        <div class="template-meta">
+                            <span class="meta-item">📄 1 Page</span>
+                            <span class="meta-item">⚡ ATS Optimized</span>
+                        </div>
                     </div>
-                    <button class="use-template-btn">Use This Template</button>
                 </div>
-            </div>
 
-            <!-- Modern Template -->
-            <div class="template-card" onclick="selectTemplate('modern')">
-                <div class="template-preview">
-                    <div class="sample-resume sample-modern">
-                        <div class="sample-header">
-                            <div style="font-size: 1.2rem; font-weight: bold;">Sarah Chen</div>
-                            <div style="font-size: 0.65rem; opacity: 0.9;">Product Manager</div>
-                            <div style="font-size: 0.6rem; margin-top: 0.5rem; opacity: 0.8;">sarah@email.com | linkedin.com/in/sarahchen</div>
-                        </div>
-                        <div style="padding: 0 1rem;">
-                            <div class="sample-section">
-                                <div class="sample-section-title" style="color: #6366f1;">Summary</div>
-                                <div style="font-size: 0.65rem;">Innovative product leader with track record of launching...</div>
+                <!-- Template 2: Modern -->
+                <div class="template-card" onclick="selectTemplate('modern', 'Modern')">
+                    <div class="template-preview">
+                        <div class="template-badge" style="background: #3b82f6;">ATS 95%</div>
+                        <div style="height: 100%; background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 2rem; font-size: 0.6rem;">
+                            <div style="margin-bottom: 1.5rem;">
+                                <div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 0.25rem;">Sarah Chen</div>
+                                <div style="opacity: 0.9; font-size: 0.7rem;">Product Manager</div>
+                                <div style="opacity: 0.8; font-size: 0.5rem; margin-top: 0.5rem;">sarah.chen@email.com | San Francisco, CA</div>
                             </div>
-                            <div class="sample-section">
-                                <div class="sample-section-title" style="color: #6366f1;">Experience</div>
-                                <div class="sample-item">
-                                    <div style="display: flex; justify-content: space-between;">
-                                        <span class="sample-item-title">Product Lead</span>
-                                        <span style="font-size: 0.6rem; color: #666;">2021-Present</span>
+                            <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+                                <div style="font-weight: 600; margin-bottom: 0.25rem; font-size: 0.55rem;">EXPERIENCE</div>
+                                <div style="opacity: 0.9; font-size: 0.55rem;">Senior PM at TechCorp | 2020-Present</div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 4px;">
+                                <div style="font-weight: 600; margin-bottom: 0.25rem; font-size: 0.55rem;">EDUCATION</div>
+                                <div style="opacity: 0.9; font-size: 0.55rem;">MBA, Stanford University</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="template-info">
+                        <div class="template-name">Modern Executive</div>
+                        <div class="template-desc">Bold design with color header. Ideal for tech, startup, and creative roles.</div>
+                        <div class="template-meta">
+                            <span class="meta-item">🎨 Color</span>
+                            <span class="meta-item">⚡ ATS Optimized</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Template 3: Minimal -->
+                <div class="template-card" onclick="selectTemplate('minimal', 'Minimal')">
+                    <div class="template-preview">
+                        <div class="template-badge" style="background: #8b5cf6;">ATS 99%</div>
+                        <div style="padding: 2rem; height: 100%; background: white; font-family: Georgia, serif; font-size: 0.6rem; line-height: 1.5;">
+                            <div style="text-align: center; border-bottom: 1px solid #e5e7eb; padding-bottom: 1.5rem; margin-bottom: 1.5rem;">
+                                <div style="font-size: 1.4rem; font-weight: normal; letter-spacing: 2px; margin-bottom: 0.5rem;">Alex Rivera</div>
+                                <div style="color: #6b7280; font-size: 0.65rem;">Software Engineer</div>
+                                <div style="color: #9ca3af; font-size: 0.5rem; margin-top: 0.75rem;">alex@dev.com | github.com/arivera</div>
+                            </div>
+                            <div style="margin-bottom: 1.5rem;">
+                                <div style="text-transform: uppercase; letter-spacing: 1px; font-size: 0.55rem; color: #374151; margin-bottom: 0.75rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.25rem;">Experience</div>
+                                <div style="margin-bottom: 0.75rem;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                                        <span style="font-weight: 600;">Senior Developer</span>
+                                        <span style="color: #6b7280; font-size: 0.5rem;">2021-Present</span>
                                     </div>
-                                    <div class="sample-item-subtitle">Tech Startup Inc.</div>
+                                    <div style="color: #6b7280; font-size: 0.55rem; margin-bottom: 0.25rem;">Google</div>
+                                    <div style="color: #4b5563; font-size: 0.55rem;">Led development of cloud infrastructure...</div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="template-info">
-                    <h3>Modern Gradient</h3>
-                    <p>Contemporary design with subtle colors. Ideal for tech, marketing, creative, and startup roles.</p>
-                    <div class="template-tags">
-                        <span class="tag">ATS Score: 95%</span>
-                        <span class="tag">Contemporary</span>
-                        <span class="tag">Creative fields</span>
+                    <div class="template-info">
+                        <div class="template-name">Minimal Clean</div>
+                        <div class="template-desc">Elegant typography-focused design. Perfect for academics, writers, and executives.</div>
+                        <div class="template-meta">
+                            <span class="meta-item">✨ Clean</span>
+                            <span class="meta-item">⚡ ATS Optimized</span>
+                        </div>
                     </div>
-                    <button class="use-template-btn">Use This Template</button>
                 </div>
-            </div>
 
-            <!-- Minimal Template -->
-            <div class="template-card" onclick="selectTemplate('minimal')">
-                <div class="template-preview">
-                    <div class="sample-resume sample-minimal">
-                        <div class="sample-header">
-                            <div class="sample-name">Alex Rivera</div>
-                            <div style="font-size: 0.7rem; color: #666; margin-top: 0.25rem;">Software Engineer</div>
-                            <div style="font-size: 0.65rem; color: #999; margin-top: 0.5rem;">alex@dev.com | github.com/arivera</div>
-                        </div>
-                        <div class="sample-section">
-                            <div class="sample-section-title" style="border-bottom-color: #333; color: #333;">Experience</div>
-                            <div class="sample-item">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
-                                    <span style="font-weight: 500;">Senior Developer</span>
-                                    <span style="font-size: 0.65rem; color: #999;">2022 - Present</span>
+                <!-- Template 4: Creative -->
+                <div class="template-card" onclick="selectTemplate('professional', 'Creative')">
+                    <div class="template-preview">
+                        <div class="template-badge" style="background: #f59e0b;">ATS 92%</div>
+                        <div style="padding: 2rem; height: 100%; background: white; font-size: 0.6rem;">
+                            <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                                <div style="width: 60px; height: 60px; background: #f3f4f6; border-radius: 50%; flex-shrink: 0;"></div>
+                                <div>
+                                    <div style="font-size: 1.1rem; font-weight: bold; color: #1f2937;">Emma Wilson</div>
+                                    <div style="color: #f59e0b; font-size: 0.65rem; margin-top: 0.25rem;">Graphic Designer</div>
+                                    <div style="color: #9ca3af; font-size: 0.5rem; margin-top: 0.5rem;">emma@design.com | Portfolio: emmawilson.com</div>
                                 </div>
-                                <div style="font-size: 0.65rem; color: #666; margin-bottom: 0.25rem;">Google</div>
-                                <div style="font-size: 0.6rem; color: #444;">Led development of cloud infrastructure serving 1M+ users...</div>
+                            </div>
+                            <div style="border-left: 3px solid #f59e0b; padding-left: 1rem; margin-bottom: 1rem;">
+                                <div style="font-weight: 600; margin-bottom: 0.25rem;">Creative Lead | Design Studio</div>
+                                <div style="color: #6b7280; font-size: 0.55rem;">2020 - Present | New York, NY</div>
                             </div>
                         </div>
-                        <div class="sample-section">
-                            <div class="sample-section-title" style="border-bottom-color: #333; color: #333;">Skills</div>
-                            <div style="font-size: 0.65rem;">JavaScript, Python, AWS, React, Node.js, System Design</div>
+                    </div>
+                    <div class="template-info">
+                        <div class="template-name">Creative Portfolio</div>
+                        <div class="template-desc">Stand out with subtle design elements. Best for design, marketing, and creative roles.</div>
+                        <div class="template-meta">
+                            <span class="meta-item">🎨 Visual</span>
+                            <span class="meta-item">⚡ ATS Friendly</span>
                         </div>
                     </div>
-                </div>
-                <div class="template-info">
-                    <h3>Minimalist Clean</h3>
-                    <p>Clean, typography-focused design. Perfect for tech, design, academic, and executive positions.</p>
-                    <div class="template-tags">
-                        <span class="tag">ATS Score: 99%</span>
-                        <span class="tag">Minimal</span>
-                        <span class="tag">Typography</span>
-                    </div>
-                    <button class="use-template-btn">Use This Template</button>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
 
-    <!-- Builder Interface -->
+    <!-- Builder -->
     <div class="builder-container" id="builder">
-        <div class="sidebar">
-            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
-                <button onclick="showGallery()" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">←</button>
-                <span style="font-weight: 600;">Back to Templates</span>
+        <div class="builder-sidebar">
+            <div class="section-nav">
+                <button class="nav-pill active" onclick="showSection('personal')">Personal</button>
+                <button class="nav-pill" onclick="showSection('experience')">Experience</button>
+                <button class="nav-pill" onclick="showSection('education')">Education</button>
+                <button class="nav-pill" onclick="showSection('skills')">Skills</button>
             </div>
 
-            <div class="progress-bar">
-                <div class="progress-fill" id="progress-bar"></div>
-            </div>
+            <div class="form-content">
+                <!-- Sample Data Banner -->
+                <div class="sample-data-banner" id="sampleBanner">
+                    <div>
+                        <strong>Sample data loaded!</strong>
+                        <div style="font-size: 0.85rem; margin-top: 0.25rem;">This is an example. Replace with your information.</div>
+                    </div>
+                    <button onclick="clearSampleData()">Clear & Start Fresh</button>
+                </div>
 
-            <div class="tip-box" id="smart-tip">
-                💡 <strong>Tip:</strong> Use action verbs like "Led", "Created", "Increased" rather than "Responsible for".
-            </div>
-
-            <div class="form-section">
-                <h3>Personal Information</h3>
-                <div class="form-group">
-                    <label>Full Name *</label>
-                    <input type="text" id="input-name" placeholder="John Doe" oninput="updateResume()">
-                </div>
-                <div class="form-group">
-                    <label>Professional Title</label>
-                    <input type="text" id="input-title" placeholder="Software Engineer" oninput="updateResume()">
-                </div>
-                <div class="form-group">
-                    <label>Email *</label>
-                    <input type="email" id="input-email" placeholder="john@example.com" oninput="updateResume()">
-                </div>
-                <div class="form-group">
-                    <label>Phone</label>
-                    <input type="tel" id="input-phone" placeholder="+1 (555) 123-4567" oninput="updateResume()">
-                </div>
-                <div class="form-group">
-                    <label>Location</label>
-                    <input type="text" id="input-location" placeholder="New York, NY" oninput="updateResume()">
-                </div>
-                <div class="form-group">
-                    <label>LinkedIn / Portfolio</label>
-                    <input type="text" id="input-linkedin" placeholder="linkedin.com/in/johndoe" oninput="updateResume()">
-                </div>
-            </div>
-
-            <div class="form-section">
-                <h3>Professional Summary</h3>
-                <div class="form-group">
-                    <textarea id="input-summary" placeholder="Results-driven professional with X years of experience in..." oninput="updateResume()"></textarea>
-                </div>
-            </div>
-
-            <div class="form-section">
-                <h3>Experience</h3>
-                <div id="experience-list">
+                <!-- Personal Section -->
+                <div class="form-section active" id="section-personal">
+                    <h3>👤 Personal Information</h3>
                     <div class="form-group">
-                        <input type="text" placeholder="Job Title" class="exp-title" oninput="updateResume()">
-                        <input type="text" placeholder="Company" class="exp-company" oninput="updateResume()" style="margin-top: 0.5rem;">
-                        <input type="text" placeholder="Dates (e.g., Jan 2020 - Present)" class="exp-date" oninput="updateResume()" style="margin-top: 0.5rem;">
-                        <textarea placeholder="• Achieved X result through Y action&#10;• Managed team of Z people&#10;• Increased revenue by 25%" class="exp-desc" oninput="updateResume()" style="margin-top: 0.5rem; min-height: 80px;"></textarea>
+                        <label>Full Name *</label>
+                        <input type="text" id="input-name" placeholder="John Smith" oninput="updateResume()">
+                    </div>
+                    <div class="form-group">
+                        <label>Job Title</label>
+                        <input type="text" id="input-title" placeholder="Senior Marketing Manager" oninput="updateResume()">
+                    </div>
+                    <div class="form-group">
+                        <label>Email *</label>
+                        <input type="email" id="input-email" placeholder="john.smith@email.com" oninput="updateResume()">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" id="input-phone" placeholder="+1 (555) 123-4567" oninput="updateResume()">
+                    </div>
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" id="input-location" placeholder="New York, NY" oninput="updateResume()">
+                    </div>
+                    <div class="form-group">
+                        <label>LinkedIn / Website</label>
+                        <input type="text" id="input-linkedin" placeholder="linkedin.com/in/johnsmith" oninput="updateResume()">
+                    </div>
+                    <div class="form-group">
+                        <label>Professional Summary</label>
+                        <textarea id="input-summary" placeholder="Results-driven marketing professional with 8+ years of experience..." oninput="updateResume()"></textarea>
+                        <div class="hint">💡 Tip: Use numbers to quantify achievements (e.g., 'Increased revenue by 40%')</div>
                     </div>
                 </div>
-                <button class="add-btn" onclick="addExperience()">+ Add Experience</button>
-            </div>
 
-            <div class="form-section">
-                <h3>Education</h3>
-                <div class="form-group">
-                    <input type="text" id="input-degree" placeholder="Degree (e.g., BS in Computer Science)" oninput="updateResume()">
-                    <input type="text" id="input-school" placeholder="University Name" oninput="updateResume()" style="margin-top: 0.5rem;">
-                    <input type="text" id="input-grad-year" placeholder="Graduation Year" oninput="updateResume()" style="margin-top: 0.5rem;">
+                <!-- Experience Section -->
+                <div class="form-section" id="section-experience">
+                    <h3>💼 Work Experience</h3>
+                    <div id="experience-list">
+                        <!-- Experience items added here -->
+                    </div>
+                    <button class="add-btn" onclick="addExperience()">+ Add Experience</button>
+                </div>
+
+                <!-- Education Section -->
+                <div class="form-section" id="section-education">
+                    <h3>🎓 Education</h3>
+                    <div id="education-list">
+                        <!-- Education items added here -->
+                    </div>
+                    <button class="add-btn" onclick="addEducation()">+ Add Education</button>
+                </div>
+
+                <!-- Skills Section -->
+                <div class="form-section" id="section-skills">
+                    <h3>🛠️ Skills</h3>
+                    <div class="form-group">
+                        <label>Key Skills (comma separated)</label>
+                        <textarea id="input-skills" placeholder="Strategic Planning, Team Leadership, Data Analysis, Project Management, Microsoft Office, Salesforce..." oninput="updateResume()" style="min-height: 120px;"></textarea>
+                        <div class="hint">Include hard skills (software, tools) and soft skills (leadership, communication)</div>
+                    </div>
                 </div>
             </div>
-
-            <div class="form-section">
-                <h3>Skills</h3>
-                <div class="form-group">
-                    <input type="text" id="input-skills" placeholder="e.g., Project Management, Python, Data Analysis, Leadership" oninput="updateResume()">
-                    <small style="color: var(--text-light); font-size: 0.8rem;">Separate skills with commas</small>
-                </div>
-            </div>
-
-            <div style="height: 100px;"></div>
         </div>
 
-        <div class="preview-area">
-            <div class="resume-preview template-classic" id="resume-preview">
+        <div class="preview-container">
+            <div class="resume-page" id="resume-page">
                 <div class="resume-header">
-                    <div class="resume-name" id="preview-name">Your Name</div>
+                    <div class="resume-name" id="preview-name">John Smith</div>
+                    <div class="resume-title" id="preview-title">Senior Marketing Manager</div>
                     <div class="resume-contact" id="preview-contact">
-                        <span id="preview-email">email@example.com</span>
-                        <span id="preview-phone">+1 (555) 000-0000</span>
-                        <span id="preview-location">Location</span>
+                        <span>john.smith@email.com</span>
+                        <span>+1 (555) 123-4567</span>
+                        <span>New York, NY</span>
+                        <span>linkedin.com/in/johnsmith</span>
                     </div>
                 </div>
 
                 <div class="resume-section" id="preview-summary-section">
-                    <h3>Professional Summary</h3>
-                    <div class="resume-item-desc" id="preview-summary">Your professional summary will appear here...</div>
-                </div>
-
-                <div class="resume-section" id="preview-experience-section">
-                    <h3>Experience</h3>
-                    <div id="preview-experience-list">
-                        <div class="resume-item">
-                            <div class="resume-item-header">
-                                <span class="resume-item-title">Job Title</span>
-                                <span class="resume-item-date">Dates</span>
-                            </div>
-                            <div class="resume-item-subtitle">Company Name</div>
-                            <div class="resume-item-desc">Description...</div>
-                        </div>
+                    <div class="section-title">Professional Summary</div>
+                    <div style="color: #334155; line-height: 1.6; font-size: 0.95rem;" id="preview-summary">
+                        Results-driven marketing professional with 8+ years of experience developing and executing strategic marketing campaigns. Proven track record of increasing revenue by 40% and building high-performing teams.
                     </div>
                 </div>
 
                 <div class="resume-section">
-                    <h3>Education</h3>
-                    <div class="resume-item">
-                        <div class="resume-item-header">
-                            <span class="resume-item-title" id="preview-degree">Degree</span>
-                            <span class="resume-item-date" id="preview-year">Year</span>
-                        </div>
-                        <div class="resume-item-subtitle" id="preview-school">University</div>
+                    <div class="section-title">Experience</div>
+                    <div id="preview-experience">
+                        <!-- Experience rendered here -->
                     </div>
                 </div>
 
                 <div class="resume-section">
-                    <h3>Skills</h3>
-                    <div class="skills-list" id="preview-skills">
-                        <span class="skill-tag">Skills will appear here</span>
+                    <div class="section-title">Education</div>
+                    <div id="preview-education">
+                        <!-- Education rendered here -->
                     </div>
                 </div>
-            </div>
 
-            <div class="template-selector">
-                <div class="template-btn active" onclick="setTemplate('classic')" title="Classic">
-                    <div style="background: white; height: 100%; border: 1px solid #ddd;"></div>
-                </div>
-                <div class="template-btn" onclick="setTemplate('modern')" title="Modern">
-                    <div style="background: linear-gradient(135deg, #6366f1, #ec4899); height: 100%;"></div>
-                </div>
-                <div class="template-btn" onclick="setTemplate('minimal')" title="Minimal">
-                    <div style="background: #f9fafb; height: 100%; border: 1px solid #e5e7eb;"></div>
+                <div class="resume-section">
+                    <div class="section-title">Skills</div>
+                    <div class="skills-container" id="preview-skills">
+                        <!-- Skills rendered here -->
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        let currentTemplate = 'classic';
+        let currentTemplate = 'professional';
+        let experienceCount = 0;
+        let educationCount = 0;
 
-        function selectTemplate(template) {
-            currentTemplate = template;
-            document.getElementById('template-gallery').classList.remove('active');
-            document.getElementById('builder').classList.add('active');
-            setTemplate(template);
-
-            // Load example data based on template
-            if (template === 'classic') {
-                loadExampleData('John Smith', 'Financial Analyst', 'Traditional');
-            } else if (template === 'modern') {
-                loadExampleData('Sarah Chen', 'Product Manager', 'Modern');
-            } else {
-                loadExampleData('Alex Rivera', 'Software Engineer', 'Minimal');
+        // Sample data for different templates
+        const sampleData = {
+            professional: {
+                name: 'John Smith',
+                title: 'Senior Marketing Manager',
+                email: 'john.smith@email.com',
+                phone: '+1 (555) 123-4567',
+                location: 'New York, NY',
+                linkedin: 'linkedin.com/in/johnsmith',
+                summary: 'Results-driven marketing professional with 8+ years of experience developing and executing strategic marketing campaigns. Proven track record of increasing revenue by 40% and building high-performing teams.',
+                experience: [
+                    {
+                        title: 'Marketing Director',
+                        company: 'ABC Corporation',
+                        date: '2019 - Present',
+                        description: '• Increased annual revenue by 40% through strategic digital marketing campaigns\n• Managed team of 12 marketing professionals across 3 departments\n• Reduced customer acquisition cost by 25% while improving lead quality\n• Implemented marketing automation saving 20 hours per week'
+                    },
+                    {
+                        title: 'Senior Marketing Manager',
+                        company: 'XYZ Company',
+                        date: '2016 - 2019',
+                        description: '• Developed and executed integrated marketing strategies\n• Grew social media following from 10K to 150K in 18 months\n• Managed $2M annual marketing budget with 95% efficiency rate'
+                    }
+                ],
+                education: [
+                    {
+                        degree: 'MBA, Marketing',
+                        school: 'University of Pennsylvania, Wharton School',
+                        date: '2016'
+                    },
+                    {
+                        degree: 'BS, Business Administration',
+                        school: 'Boston University',
+                        date: '2014'
+                    }
+                ],
+                skills: 'Strategic Planning, Team Leadership, Digital Marketing, Data Analysis, Budget Management, Salesforce, Google Analytics, Project Management, Content Strategy, SEO/SEM'
+            },
+            modern: {
+                name: 'Sarah Chen',
+                title: 'Senior Product Manager',
+                email: 'sarah.chen@email.com',
+                phone: '+1 (415) 555-0123',
+                location: 'San Francisco, CA',
+                linkedin: 'linkedin.com/in/sarahchen',
+                summary: 'Innovative product manager with 6+ years of experience leading cross-functional teams to deliver user-centric solutions. Track record of launching products that generated $10M+ in revenue.',
+                experience: [
+                    {
+                        title: 'Senior Product Manager',
+                        company: 'TechCorp Inc.',
+                        date: '2020 - Present',
+                        description: '• Led product roadmap for flagship SaaS platform serving 50K+ users\n• Increased customer retention by 35% through data-driven feature prioritization\n• Managed team of 8 engineers and 2 designers'
+                    }
+                ],
+                education: [
+                    {
+                        degree: 'MBA, Product Management',
+                        school: 'Stanford University',
+                        date: '2019'
+                    }
+                ],
+                skills: 'Product Strategy, Agile/Scrum, Data Analysis, User Research, A/B Testing, SQL, Figma, Jira, Stakeholder Management'
+            },
+            minimal: {
+                name: 'Alex Rivera',
+                title: 'Software Engineer',
+                email: 'alex.rivera@email.com',
+                phone: '+1 (555) 987-6543',
+                location: 'Seattle, WA',
+                linkedin: 'github.com/arivera',
+                summary: 'Full-stack developer with 5+ years of experience building scalable web applications. Passionate about clean code and user experience.',
+                experience: [
+                    {
+                        title: 'Senior Software Engineer',
+                        company: 'Google',
+                        date: '2021 - Present',
+                        description: '• Led development of cloud infrastructure serving 1M+ daily users\n• Reduced latency by 40% through optimization initiatives\n• Mentored team of 5 junior developers'
+                    }
+                ],
+                education: [
+                    {
+                        degree: 'BS, Computer Science',
+                        school: 'University of Washington',
+                        date: '2019'
+                    }
+                ],
+                skills: 'JavaScript, Python, React, Node.js, AWS, System Design, PostgreSQL, Docker, Kubernetes'
             }
+        };
+
+        function selectTemplate(template, category) {
+            currentTemplate = template;
+
+            // Hide gallery, show builder
+            document.getElementById('templateGallery').style.display = 'none';
+            document.getElementById('builder').classList.add('active');
+            document.getElementById('navbar').style.display = 'flex';
+
+            // Apply template style
+            const resumePage = document.getElementById('resume-page');
+            resumePage.className = 'resume-page template-' + template;
+
+            // Load sample data
+            loadSampleData(template);
         }
 
         function showGallery() {
+            document.getElementById('templateGallery').style.display = 'block';
             document.getElementById('builder').classList.remove('active');
-            document.getElementById('template-gallery').classList.add('active');
+            document.getElementById('navbar').style.display = 'none';
         }
 
-        function setTemplate(template) {
-            currentTemplate = template;
-            const preview = document.getElementById('resume-preview');
-            const buttons = document.querySelectorAll('.template-btn');
+        function loadSampleData(template) {
+            const data = sampleData[template] || sampleData.professional;
 
-            buttons.forEach(btn => btn.classList.remove('active'));
-            event.target.closest('.template-btn').classList.add('active');
+            document.getElementById('input-name').value = data.name;
+            document.getElementById('input-title').value = data.title;
+            document.getElementById('input-email').value = data.email;
+            document.getElementById('input-phone').value = data.phone;
+            document.getElementById('input-location').value = data.location;
+            document.getElementById('input-linkedin').value = data.linkedin;
+            document.getElementById('input-summary').value = data.summary;
+            document.getElementById('input-skills').value = data.skills;
 
-            preview.className = 'resume-preview template-' + template;
+            // Load experience
+            const expContainer = document.getElementById('experience-list');
+            expContainer.innerHTML = '';
+            data.experience.forEach(exp => {
+                addExperience(exp);
+            });
+
+            // Load education
+            const eduContainer = document.getElementById('education-list');
+            eduContainer.innerHTML = '';
+            data.education.forEach(edu => {
+                addEducation(edu);
+            });
+
+            updateResume();
+            updateATSScore();
+        }
+
+        function clearSampleData() {
+            document.getElementById('input-name').value = '';
+            document.getElementById('input-title').value = '';
+            document.getElementById('input-email').value = '';
+            document.getElementById('input-phone').value = '';
+            document.getElementById('input-location').value = '';
+            document.getElementById('input-linkedin').value = '';
+            document.getElementById('input-summary').value = '';
+            document.getElementById('input-skills').value = '';
+            document.getElementById('experience-list').innerHTML = '';
+            document.getElementById('education-list').innerHTML = '';
+            document.getElementById('sampleBanner').style.display = 'none';
             updateResume();
         }
 
-        function loadExampleData(name, title, style) {
-            document.getElementById('input-name').value = name;
-            document.getElementById('input-title').value = title;
-            document.getElementById('input-email').value = name.toLowerCase().replace(' ', '.') + '@email.com';
-            document.getElementById('input-phone').value = '+1 (555) 123-4567';
-            document.getElementById('input-location').value = 'New York, NY';
-            document.getElementById('input-summary').value = 'Results-driven ' + title.toLowerCase() + ' with 5+ years of experience delivering exceptional results. Proven track record of increasing efficiency by 40% and leading cross-functional teams to success.';
+        function showSection(section) {
+            // Update nav pills
+            document.querySelectorAll('.nav-pill').forEach(pill => pill.classList.remove('active'));
+            event.target.classList.add('active');
 
-            document.querySelector('.exp-title').value = 'Senior ' + title;
-            document.querySelector('.exp-company').value = 'Fortune 500 Company';
-            document.querySelector('.exp-date').value = '2020 - Present';
-            document.querySelector('.exp-desc').value = '• Increased team productivity by 35% through implementation of agile methodologies\n• Managed $2M budget and delivered projects 20% under budget\n• Led cross-functional team of 12 professionals across 3 departments';
+            // Show section
+            document.querySelectorAll('.form-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById('section-' + section).classList.add('active');
+        }
 
-            document.getElementById('input-degree').value = 'Bachelor of Science';
-            document.getElementById('input-school').value = 'Top Tier University';
-            document.getElementById('input-grad-year').value = '2019';
-            document.getElementById('input-skills').value = 'Leadership, Strategic Planning, Data Analysis, Project Management, Communication';
+        function addExperience(data = null) {
+            const container = document.getElementById('experience-list');
+            const div = document.createElement('div');
+            div.className = 'experience-item';
+            div.innerHTML = `
+                <button class="remove-btn" onclick="this.parentElement.remove(); updateResume();">Remove</button>
+                <div class="form-group">
+                    <label>Job Title</label>
+                    <input type="text" class="exp-title" placeholder="Marketing Director" value="${data ? data.title : ''}" oninput="updateResume()">
+                </div>
+                <div class="form-group">
+                    <label>Company</label>
+                    <input type="text" class="exp-company" placeholder="ABC Corporation" value="${data ? data.company : ''}" oninput="updateResume()">
+                </div>
+                <div class="form-group">
+                    <label>Dates</label>
+                    <input type="text" class="exp-date" placeholder="2019 - Present" value="${data ? data.date : ''}" oninput="updateResume()">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea class="exp-desc" placeholder="• Achieved X result through Y action&#10;• Managed team of Z people&#10;• Increased revenue by 25%" oninput="updateResume()" style="min-height: 80px;">${data ? data.description : ''}</textarea>
+                </div>
+            `;
+            container.appendChild(div);
+            experienceCount++;
+        }
 
-            updateResume();
+        function addEducation(data = null) {
+            const container = document.getElementById('education-list');
+            const div = document.createElement('div');
+            div.className = 'education-item';
+            div.innerHTML = `
+                <button class="remove-btn" onclick="this.parentElement.remove(); updateResume();">Remove</button>
+                <div class="form-group">
+                    <label>Degree</label>
+                    <input type="text" class="edu-degree" placeholder="MBA, Marketing" value="${data ? data.degree : ''}" oninput="updateResume()">
+                </div>
+                <div class="form-group">
+                    <label>School</label>
+                    <input type="text" class="edu-school" placeholder="University Name" value="${data ? data.school : ''}" oninput="updateResume()">
+                </div>
+                <div class="form-group">
+                    <label>Year</label>
+                    <input type="text" class="edu-date" placeholder="2016" value="${data ? data.date : ''}" oninput="updateResume()">
+                </div>
+            `;
+            container.appendChild(div);
+            educationCount++;
         }
 
         function updateResume() {
+            // Update personal info
             const name = document.getElementById('input-name').value || 'Your Name';
-            const email = document.getElementById('input-email').value || 'email@example.com';
-            const phone = document.getElementById('input-phone').value || '+1 (555) 000-0000';
-            const location = document.getElementById('input-location').value || 'Location';
-            const linkedin = document.getElementById('input-linkedin').value;
+            const title = document.getElementById('input-title').value || '';
+            const email = document.getElementById('input-email').value || '';
+            const phone = document.getElementById('input-phone').value || '';
+            const location = document.getElementById('input-location').value || '';
+            const linkedin = document.getElementById('input-linkedin').value || '';
+            const summary = document.getElementById('input-summary').value || '';
 
             document.getElementById('preview-name').textContent = name;
+            document.getElementById('preview-title').textContent = title;
+            document.getElementById('preview-summary').textContent = summary;
 
-            let contactHtml = `<span>${email}</span>`;
+            // Update contact
+            let contactHtml = '';
+            if (email) contactHtml += `<span>${email}</span>`;
             if (phone) contactHtml += `<span>${phone}</span>`;
             if (location) contactHtml += `<span>${location}</span>`;
             if (linkedin) contactHtml += `<span>${linkedin}</span>`;
             document.getElementById('preview-contact').innerHTML = contactHtml;
 
-            const summary = document.getElementById('input-summary').value;
-            document.getElementById('preview-summary').textContent = summary || 'Your professional summary will appear here...';
+            // Update experience
+            const expContainer = document.getElementById('preview-experience');
+            const expTitles = document.querySelectorAll('.exp-title');
+            const expCompanies = document.querySelectorAll('.exp-company');
+            const expDates = document.querySelectorAll('.exp-date');
+            const expDescs = document.querySelectorAll('.exp-desc');
 
-            updateExperiencePreview();
-
-            const degree = document.getElementById('input-degree').value || 'Degree';
-            const school = document.getElementById('input-school').value || 'University';
-            const year = document.getElementById('input-grad-year').value || 'Year';
-
-            document.getElementById('preview-degree').textContent = degree;
-            document.getElementById('preview-school').textContent = school;
-            document.getElementById('preview-year').textContent = year;
-
-            const skills = document.getElementById('input-skills').value.split(',').filter(s => s.trim());
-            const skillsHtml = skills.length > 0
-                ? skills.map(s => `<span class="skill-tag">${s.trim()}</span>`).join('')
-                : '<span class="skill-tag">Skills will appear here</span>';
-            document.getElementById('preview-skills').innerHTML = skillsHtml;
-
-            updateProgress();
-        }
-
-        function addExperience() {
-            const container = document.getElementById('experience-list');
-            const div = document.createElement('div');
-            div.className = 'form-group';
-            div.style.marginTop = '1rem';
-            div.innerHTML = `
-                <input type="text" placeholder="Job Title" class="exp-title" oninput="updateResume()">
-                <input type="text" placeholder="Company" class="exp-company" oninput="updateResume()" style="margin-top: 0.5rem;">
-                <input type="text" placeholder="Dates" class="exp-date" oninput="updateResume()" style="margin-top: 0.5rem;">
-                <textarea placeholder="Description" class="exp-desc" oninput="updateResume()" style="margin-top: 0.5rem; min-height: 80px;"></textarea>
-                <button onclick="this.parentElement.remove(); updateResume();" style="margin-top: 0.5rem; color: #ef4444; background: none; border: none; cursor: pointer; font-size: 0.85rem;">Remove</button>
-            `;
-            container.appendChild(div);
-        }
-
-        function updateExperiencePreview() {
-            const titles = document.querySelectorAll('.exp-title');
-            const companies = document.querySelectorAll('.exp-company');
-            const dates = document.querySelectorAll('.exp-date');
-            const descs = document.querySelectorAll('.exp-desc');
-
-            let html = '';
-            for (let i = 0; i < titles.length; i++) {
-                if (titles[i].value || companies[i].value) {
-                    html += `
-                        <div class="resume-item">
-                            <div class="resume-item-header">
-                                <span class="resume-item-title">${titles[i].value || 'Job Title'}</span>
-                                <span class="resume-item-date">${dates[i].value || 'Dates'}</span>
+            let expHtml = '';
+            for (let i = 0; i < expTitles.length; i++) {
+                if (expTitles[i].value) {
+                    expHtml += `
+                        <div class="job-item">
+                            <div class="job-header">
+                                <span class="job-title">${expTitles[i].value}</span>
+                                <span class="job-date">${expDates[i].value || ''}</span>
                             </div>
-                            <div class="resume-item-subtitle">${companies[i].value || 'Company'}</div>
-                            <div class="resume-item-desc">${descs[i].value || ''}</div>
+                            <div class="job-company">${expCompanies[i].value || ''}</div>
+                            <div class="job-description">${expDescs[i].value || ''}</div>
                         </div>
                     `;
                 }
             }
+            expContainer.innerHTML = expHtml || '<div style="color: #9ca3af;">Add your work experience...</div>';
 
-            document.getElementById('preview-experience-list').innerHTML = html || '<div class="resume-item"><div class="resume-item-header"><span class="resume-item-title">Job Title</span><span class="resume-item-date">Dates</span></div><div class="resume-item-subtitle">Company</div></div>';
+            // Update education
+            const eduContainer = document.getElementById('preview-education');
+            const eduDegrees = document.querySelectorAll('.edu-degree');
+            const eduSchools = document.querySelectorAll('.edu-school');
+            const eduDates = document.querySelectorAll('.edu-date');
+
+            let eduHtml = '';
+            for (let i = 0; i < eduDegrees.length; i++) {
+                if (eduDegrees[i].value) {
+                    eduHtml += `
+                        <div class="job-item">
+                            <div class="job-header">
+                                <span class="job-title">${eduDegrees[i].value}</span>
+                                <span class="job-date">${eduDates[i].value || ''}</span>
+                            </div>
+                            <div class="job-company">${eduSchools[i].value || ''}</div>
+                        </div>
+                    `;
+                }
+            }
+            eduContainer.innerHTML = eduHtml || '<div style="color: #9ca3af;">Add your education...</div>';
+
+            // Update skills
+            const skills = document.getElementById('input-skills').value.split(',').filter(s => s.trim());
+            const skillsContainer = document.getElementById('preview-skills');
+            skillsContainer.innerHTML = skills.length > 0
+                ? skills.map(s => `<span class="skill-tag">${s.trim()}</span>`).join('')
+                : '<span style="color: #9ca3af;">Add your skills...</span>';
+
+            updateATSScore();
         }
 
-        function updateProgress() {
-            const inputs = document.querySelectorAll('input, textarea');
-            let filled = 0;
-            inputs.forEach(input => {
-                if (input.value.trim()) filled++;
-            });
-            const percent = Math.min((filled / inputs.length) * 100, 100);
-            document.getElementById('progress-bar').style.width = percent + '%';
+        function updateATSScore() {
+            // Simple ATS scoring logic
+            let score = 60;
+            const name = document.getElementById('input-name').value;
+            const email = document.getElementById('input-email').value;
+            const summary = document.getElementById('input-summary').value;
+            const skills = document.getElementById('input-skills').value;
+            const experiences = document.querySelectorAll('.exp-title');
+
+            if (name) score += 10;
+            if (email) score += 10;
+            if (summary.length > 50) score += 10;
+            if (skills.length > 20) score += 10;
+            if (experiences.length > 0) score += 10;
+
+            document.getElementById('ats-percent').textContent = Math.min(score, 98);
         }
 
-        // Auto-save
-        setInterval(() => {
-            const data = {};
-            document.querySelectorAll('input, textarea').forEach((input, index) => {
-                data['field_' + index] = input.value;
+        function toggleDownloadMenu() {
+            document.getElementById('downloadMenu').classList.toggle('active');
+        }
+
+        function downloadPDF() {
+            const element = document.getElementById('resume-page');
+
+            html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                logging: false
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                const imgWidth = canvas.width;
+                const imgHeight = canvas.height;
+                const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+
+                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth * ratio, imgHeight * ratio);
+                pdf.save('resume.pdf');
             });
-            localStorage.setItem('resumeData', JSON.stringify(data));
-        }, 30000);
+
+            document.getElementById('downloadMenu').classList.remove('active');
+        }
+
+        function downloadWord() {
+            const content = document.getElementById('resume-page').innerHTML;
+            const html = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head><meta charset='utf-8'><title>Resume</title></head>
+                <body>${content}</body>
+                </html>
+            `;
+
+            const blob = new Blob(['\ufeff', html], {
+                type: 'application/msword'
+            });
+
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'resume.doc';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            document.getElementById('downloadMenu').classList.remove('active');
+        }
+
+        // Close download menu when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.nav-right')) {
+                document.getElementById('downloadMenu').classList.remove('active');
+            }
+        });
+
+        // Initialize
+        updateResume();
     </script>
 </body>
 </html>
