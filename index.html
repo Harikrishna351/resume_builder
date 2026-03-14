@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Resume Builder | Smart Suggestions & ATS Optimized</title>
+    <title>AI Resume Builder | Smart Writing Assistant</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
@@ -24,8 +24,8 @@
             --text: #1e293b;
             --text-light: #64748b;
             --border: #e2e8f0;
-            --ai-bg: #f0fdf4;
-            --ai-border: #86efac;
+            --ai-purple: #8b5cf6;
+            --ai-bg: #f5f3ff;
         }
 
         body {
@@ -88,12 +88,6 @@
         .nav-right {
             display: flex;
             align-items: center;
-            gap: 1.5rem;
-        }
-
-        .download-section {
-            display: flex;
-            align-items: center;
             gap: 1rem;
         }
 
@@ -110,24 +104,20 @@
             cursor: pointer;
             font-size: 0.95rem;
             transition: all 0.2s;
-            box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
         }
 
         .download-btn:hover {
             background: #059669;
             transform: translateY(-1px);
-            box-shadow: 0 6px 8px -1px rgba(16, 185, 129, 0.3);
         }
 
         .download-btn.secondary {
             background: white;
             color: var(--text);
             border: 1px solid var(--border);
-            box-shadow: none;
         }
 
         .download-btn.secondary:hover {
-            background: var(--bg);
             border-color: var(--primary);
             color: var(--primary);
         }
@@ -229,6 +219,7 @@
 
         .builder-container.active {
             display: flex;
+            flex-direction: column;
         }
 
         .builder-layout {
@@ -239,8 +230,8 @@
 
         /* Left Sidebar - Forms */
         .builder-sidebar {
-            width: 35%;
-            min-width: 400px;
+            width: 40%;
+            min-width: 450px;
             background: white;
             border-right: 1px solid var(--border);
             overflow-y: auto;
@@ -270,6 +261,29 @@
             font-size: 0.95rem;
             background: white;
             cursor: pointer;
+        }
+
+        .ai-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+            padding: 0.5rem;
+            background: var(--ai-bg);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: var(--ai-purple);
+            border: 1px solid #ddd6fe;
+        }
+
+        .ai-status.active::before {
+            content: "⚡";
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
         .section-nav {
@@ -321,7 +335,7 @@
         }
 
         .form-group {
-            margin-bottom: 1.25rem;
+            margin-bottom: 1.5rem;
             position: relative;
         }
 
@@ -348,8 +362,8 @@
         .form-group input:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            border-color: var(--ai-purple);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
         }
 
         .form-group textarea {
@@ -357,66 +371,56 @@
             min-height: 100px;
         }
 
-        /* AI Suggestions Panel */
-        .ai-suggestions {
+        /* AI Suggestions Box - Always Visible Style */
+        .ai-box {
             background: var(--ai-bg);
-            border: 1px solid var(--ai-border);
+            border: 1px solid #ddd6fe;
             border-radius: 8px;
             padding: 1rem;
-            margin-top: 0.5rem;
-            display: none;
+            margin-top: 0.75rem;
         }
 
-        .ai-suggestions.active {
-            display: block;
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .ai-header {
+        .ai-box-header {
             display: flex;
             align-items: center;
             gap: 0.5rem;
             font-weight: 600;
-            color: #166534;
-            font-size: 0.85rem;
+            color: var(--ai-purple);
+            font-size: 0.9rem;
             margin-bottom: 0.75rem;
         }
 
-        .ai-suggestion-item {
+        .ai-suggestion-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .ai-chip {
             background: white;
+            border: 1px solid #c4b5fd;
             padding: 0.75rem;
             border-radius: 6px;
-            margin-bottom: 0.5rem;
             cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid transparent;
             font-size: 0.9rem;
             color: var(--text);
+            transition: all 0.2s;
+            text-align: left;
+            line-height: 1.4;
         }
 
-        .ai-suggestion-item:hover {
-            border-color: var(--primary);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        .ai-chip:hover {
+            background: var(--ai-purple);
+            color: white;
+            border-color: var(--ai-purple);
+            transform: translateX(4px);
         }
 
-        .ai-suggestion-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .ai-tag {
-            display: inline-block;
-            background: #dcfce7;
-            color: #166534;
-            padding: 0.15rem 0.5rem;
-            border-radius: 4px;
+        .ai-chip small {
+            display: block;
             font-size: 0.75rem;
-            margin-bottom: 0.25rem;
-            font-weight: 500;
+            opacity: 0.7;
+            margin-top: 0.25rem;
         }
 
         .add-btn {
@@ -463,10 +467,6 @@
             cursor: pointer;
             font-size: 0.8rem;
             font-weight: 500;
-        }
-
-        .remove-btn:hover {
-            background: #fecaca;
         }
 
         /* Preview Area */
@@ -619,50 +619,6 @@
             justify-content: center;
         }
 
-        /* Floating AI Assistant */
-        .ai-float {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            width: 350px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
-            border: 1px solid var(--border);
-            display: none;
-            z-index: 100;
-            overflow: hidden;
-        }
-
-        .ai-float.active {
-            display: block;
-        }
-
-        .ai-float-header {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            padding: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-weight: 600;
-        }
-
-        .ai-float-content {
-            padding: 1rem;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .ai-close {
-            margin-left: auto;
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            font-size: 1.2rem;
-        }
-
         /* Responsive */
         @media (max-width: 1024px) {
             .builder-layout {
@@ -672,6 +628,7 @@
             .builder-sidebar {
                 width: 100%;
                 height: 50vh;
+                min-width: auto;
             }
 
             .preview-container {
@@ -684,12 +641,6 @@
             }
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: var(--text-light);
-        }
-
         .hint-box {
             background: #eff6ff;
             border-left: 4px solid var(--primary);
@@ -697,11 +648,6 @@
             margin-bottom: 1.5rem;
             border-radius: 0 6px 6px 0;
             font-size: 0.9rem;
-            color: var(--text);
-        }
-
-        .hint-box strong {
-            color: var(--primary);
         }
 
         .word-count {
@@ -709,6 +655,14 @@
             font-size: 0.8rem;
             color: var(--text-light);
             margin-top: 0.25rem;
+        }
+
+        .empty-ai {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            font-style: italic;
+            padding: 1rem;
+            text-align: center;
         }
     </style>
 </head>
@@ -723,14 +677,12 @@
             </button>
         </div>
         <div class="nav-right">
-            <div class="download-section">
-                <button class="download-btn secondary" onclick="downloadWord()">
-                    💾 Word (.doc)
-                </button>
-                <button class="download-btn" onclick="downloadPDF()">
-                    📄 Download PDF
-                </button>
-            </div>
+            <button class="download-btn secondary" onclick="downloadWord()">
+                💾 Word (.doc)
+            </button>
+            <button class="download-btn" onclick="downloadPDF()">
+                📄 Download PDF
+            </button>
         </div>
     </nav>
 
@@ -809,9 +761,9 @@
             <!-- Sidebar -->
             <div class="builder-sidebar">
                 <div class="role-selector">
-                    <label>🎯 Target Role (for AI suggestions)</label>
-                    <select id="targetRole" onchange="updateAISuggestions()">
-                        <option value="general">Select your target role...</option>
+                    <label>🎯 Select Your Target Role (for AI suggestions)</label>
+                    <select id="targetRole" onchange="updateAI()">
+                        <option value="">-- Select a role --</option>
                         <option value="software">Software Engineer / Developer</option>
                         <option value="marketing">Marketing Manager</option>
                         <option value="product">Product Manager</option>
@@ -820,7 +772,13 @@
                         <option value="data">Data Analyst / Scientist</option>
                         <option value="manager">Project Manager</option>
                         <option value="hr">HR / Recruiter</option>
+                        <option value="finance">Financial Analyst</option>
+                        <option value="general">General / Other</option>
                     </select>
+                    <div class="ai-status" id="aiStatus">
+                        <span>🤖</span>
+                        <span>Select a role to activate AI suggestions</span>
+                    </div>
                 </div>
 
                 <div class="section-nav">
@@ -836,7 +794,7 @@
                         <h3>👤 Personal Information</h3>
 
                         <div class="hint-box">
-                            <strong>💡 Pro Tip:</strong> Use a professional email and include LinkedIn for 40% more responses.
+                            <strong>💡 Tip:</strong> Use a professional email and include LinkedIn for 40% more responses.
                         </div>
 
                         <div class="form-group">
@@ -863,21 +821,20 @@
                             <label>LinkedIn / Portfolio</label>
                             <input type="text" id="input-linkedin" placeholder="linkedin.com/in/johnsmith" oninput="updateResume()">
                         </div>
+
                         <div class="form-group">
                             <label>Professional Summary</label>
-                            <textarea id="input-summary" placeholder="Results-driven professional with X years of experience..." oninput="updateResume(); showSuggestions(this, 'summary');"></textarea>
+                            <textarea id="input-summary" placeholder="Describe your professional background..." oninput="updateResume()"></textarea>
                             <div class="word-count" id="summary-count">0 words</div>
 
-                            <!-- AI Suggestions -->
-                            <div class="ai-suggestions" id="ai-summary">
-                                <div class="ai-header">✨ AI Suggestions for Summary</div>
-                                <div class="ai-suggestion-item" onclick="applySuggestion('input-summary', this)">
-                                    <div class="ai-tag">Strong Opener</div>
-                                    <div>Results-driven [Role] with 5+ years of experience driving revenue growth and operational efficiency...</div>
+                            <!-- AI Suggestions for Summary -->
+                            <div class="ai-box" id="ai-summary-box" style="display: none;">
+                                <div class="ai-box-header">
+                                    <span>✨</span>
+                                    <span>AI Suggestions for Professional Summary</span>
                                 </div>
-                                <div class="ai-suggestion-item" onclick="applySuggestion('input-summary', this)">
-                                    <div class="ai-tag">Achievement Focus</div>
-                                    <div>Proven track record of increasing team productivity by 35% and reducing costs by 20%...</div>
+                                <div class="ai-suggestion-list" id="ai-summary-list">
+                                    <!-- Populated by JS -->
                                 </div>
                             </div>
                         </div>
@@ -888,12 +845,26 @@
                         <h3>💼 Work Experience</h3>
 
                         <div class="hint-box">
-                            <strong>🤖 AI Tip:</strong> Click on any description field to see power phrases for your role!
+                            <strong>🤖 AI Tip:</strong> Click the purple suggestion boxes below to add powerful, metric-driven bullet points!
                         </div>
 
                         <div id="experience-list"></div>
 
                         <button class="add-btn" onclick="addExperience()">+ Add Experience</button>
+
+                        <!-- AI Suggestions for Experience -->
+                        <div class="ai-box" id="ai-experience-box" style="display: none; margin-top: 1.5rem;">
+                            <div class="ai-box-header">
+                                <span>⚡</span>
+                                <span>AI Power Phrases for Your Role</span>
+                            </div>
+                            <div class="ai-suggestion-list" id="ai-experience-list">
+                                <!-- Populated by JS -->
+                            </div>
+                            <small style="color: var(--text-light); display: block; margin-top: 0.5rem;">
+                                Click any phrase to add it to your experience
+                            </small>
+                        </div>
                     </div>
 
                     <!-- Education Section -->
@@ -909,7 +880,18 @@
                         <div class="form-group">
                             <label>Key Skills (comma separated)</label>
                             <textarea id="input-skills" placeholder="Strategic Planning, Team Leadership, Data Analysis..." oninput="updateResume()" style="min-height: 120px;"></textarea>
-                            <div class="hint">Include 6-10 hard skills and 3-4 soft skills for best ATS results</div>
+                            <div class="word-count" id="skills-count">0 skills</div>
+
+                            <!-- AI Suggestions for Skills -->
+                            <div class="ai-box" id="ai-skills-box" style="display: none; margin-top: 1rem;">
+                                <div class="ai-box-header">
+                                    <span>🎯</span>
+                                    <span>Recommended Skills for This Role</span>
+                                </div>
+                                <div class="ai-suggestion-list" id="ai-skills-list" style="flex-direction: row; flex-wrap: wrap;">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -928,7 +910,7 @@
 
                     <div class="resume-section" id="preview-summary-section">
                         <div class="section-title">Professional Summary</div>
-                        <div class="job-description" id="preview-summary">Your summary will appear here...</div>
+                        <div class="job-description" id="preview-summary">Your professional summary will appear here...</div>
                     </div>
 
                     <div class="resume-section">
@@ -950,42 +932,34 @@
         </div>
     </div>
 
-    <!-- Floating AI Assistant -->
-    <div class="ai-float" id="aiFloat">
-        <div class="ai-float-header">
-            <span>🤖</span>
-            <span>AI Writing Assistant</span>
-            <button class="ai-close" onclick="closeAIFloat()">×</button>
-        </div>
-        <div class="ai-float-content" id="aiFloatContent">
-            <!-- Dynamic content -->
-        </div>
-    </div>
-
     <script>
-        let currentTemplate = 'professional';
-        let currentRole = 'general';
-
-        // AI Suggestions Database
-        const aiSuggestions = {
+        // AI Knowledge Base
+        const aiDatabase = {
             software: {
                 summary: [
-                    "Innovative Software Engineer with 5+ years of experience designing scalable applications serving 1M+ users. Proficient in React, Node.js, and cloud architecture.",
-                    "Full-stack developer passionate about clean code and user experience. Track record of reducing load times by 40% and improving system reliability."
+                    "Innovative Software Engineer with 5+ years of experience designing scalable applications serving 1M+ users. Proficient in React, Node.js, and cloud architecture with a passion for clean code.",
+                    "Results-driven Full-Stack Developer with track record of reducing load times by 40% and improving system reliability. Expert in JavaScript, Python, and AWS infrastructure.",
+                    "Detail-oriented Software Developer specializing in building high-performance web applications. Experienced in agile methodologies and test-driven development."
                 ],
                 bullets: [
                     "Developed and deployed scalable microservices architecture handling 10,000+ requests per second",
                     "Reduced application load time by 40% through code optimization and caching strategies",
                     "Led migration from monolith to microservices, improving deployment frequency by 300%",
                     "Implemented CI/CD pipelines reducing deployment time from 2 hours to 15 minutes",
+                    "Built RESTful APIs serving 500K+ daily active users with 99.9% uptime",
                     "Collaborated with cross-functional teams to deliver 15+ features ahead of schedule",
-                    "Mentored 5 junior developers, improving team velocity by 25%"
-                ]
+                    "Mentored 5 junior developers, improving team velocity by 25%",
+                    "Refactored legacy codebase, reducing technical debt by 60%",
+                    "Implemented automated testing increasing code coverage from 45% to 85%",
+                    "Optimized database queries resulting in 50% faster report generation"
+                ],
+                skills: ["JavaScript", "React", "Node.js", "Python", "AWS", "Docker", "Kubernetes", "SQL", "Git", "CI/CD", "TypeScript", "MongoDB", "System Design", "Agile"]
             },
             marketing: {
                 summary: [
-                    "Results-driven Marketing Manager with 6+ years of experience developing data-driven campaigns that increased revenue by 45%. Expert in digital strategy and brand management.",
-                    "Strategic marketing professional skilled in SEO/SEM, content strategy, and marketing automation. Proven ability to grow brand awareness and drive conversions."
+                    "Results-driven Marketing Manager with 6+ years of experience developing data-driven campaigns that increased revenue by 45%. Expert in digital strategy, SEO/SEM, and brand management.",
+                    "Strategic marketing professional skilled in content strategy, marketing automation, and analytics. Proven ability to grow brand awareness and drive conversions across channels.",
+                    "Creative Marketing Leader with track record of launching viral campaigns generating 10M+ impressions. Specializes in growth hacking and customer acquisition."
                 ],
                 bullets: [
                     "Increased organic traffic by 150% through strategic SEO initiatives and content optimization",
@@ -993,13 +967,19 @@
                     "Grew social media following from 10K to 150K in 18 months through targeted campaigns",
                     "Launched email marketing automation resulting in 35% increase in lead conversion",
                     "Developed content strategy that generated 500+ qualified leads per month",
-                    "Led rebranding initiative that increased brand recognition by 60% in target market"
-                ]
+                    "Led rebranding initiative that increased brand recognition by 60% in target market",
+                    "Optimized PPC campaigns reducing cost-per-acquisition by 30%",
+                    "Created viral marketing campaign reaching 5M+ impressions and 500K engagements",
+                    "Implemented marketing analytics dashboard improving decision-making speed by 50%",
+                    "Collaborated with sales team to align messaging, increasing lead quality by 45%"
+                ],
+                skills: ["Digital Marketing", "SEO/SEM", "Content Strategy", "Social Media", "Email Marketing", "Google Analytics", "Marketing Automation", "Brand Management", "PPC", "Copywriting", "Data Analysis", "CRM", "Project Management"]
             },
             product: {
                 summary: [
                     "Customer-obsessed Product Manager with 5+ years of experience launching 10+ products generating $10M+ revenue. Skilled in agile methodologies and data-driven decision making.",
-                    "Strategic Product Manager bridging technical and business needs. Track record of delivering user-centric solutions that drive engagement and revenue growth."
+                    "Strategic Product Manager bridging technical and business needs. Track record of delivering user-centric solutions that drive engagement and reduce churn by 35%.",
+                    "Results-oriented Product Leader with experience managing full product lifecycle from ideation to launch. Expert in user research and A/B testing."
                 ],
                 bullets: [
                     "Led product roadmap for SaaS platform serving 50,000+ daily active users",
@@ -1007,13 +987,19 @@
                     "Conducted 100+ user interviews to identify pain points and validate solutions",
                     "Collaborated with engineering teams to deliver features 20% ahead of schedule",
                     "Launched mobile app resulting in 200% increase in user engagement",
-                    "Defined product strategy that captured 25% market share within first year"
-                ]
+                    "Defined product strategy that captured 25% market share within first year",
+                    "Implemented A/B testing framework improving conversion rates by 28%",
+                    "Managed $5M product budget with 98% forecast accuracy",
+                    "Prioritized backlog using RICE framework, increasing team velocity by 30%",
+                    "Analyzed user behavior data to identify $2M revenue opportunity"
+                ],
+                skills: ["Product Strategy", "Agile/Scrum", "User Research", "A/B Testing", "Data Analysis", "Roadmapping", "SQL", "Figma", "Jira", "Stakeholder Management", "Metrics", "Customer Development"]
             },
             sales: {
                 summary: [
-                    "Top-performing Sales Representative with consistent record of exceeding quota by 150%. Expert in B2B sales, relationship building, and consultative selling.",
-                    "Dynamic sales professional with 4+ years of experience closing enterprise deals. Skilled in CRM management, pipeline development, and negotiation."
+                    "Top-performing Sales Representative with consistent record of exceeding quota by 150%. Expert in B2B sales, relationship building, and consultative selling strategies.",
+                    "Dynamic sales professional with 4+ years of experience closing enterprise deals. Skilled in CRM management, pipeline development, and negotiation.",
+                    "Results-driven Account Executive with track record of growing client portfolios by 200%. Specializes in solution selling and long-term relationship management."
                 ],
                 bullets: [
                     "Consistently exceeded sales quota by average of 140% over 3 consecutive years",
@@ -1021,13 +1007,39 @@
                     "Managed portfolio of 50+ enterprise accounts with 95% retention rate",
                     "Developed sales playbook adopted by team of 12, improving close rate by 30%",
                     "Negotiated multi-year contracts worth $500K+ annually",
-                    "Generated 200+ qualified leads per quarter through cold outreach and networking"
-                ]
+                    "Generated 200+ qualified leads per quarter through cold outreach and networking",
+                    "Reduced sales cycle from 6 months to 4 months through process optimization",
+                    "Trained 8 new sales hires, decreasing their ramp time by 40%",
+                    "Implemented Salesforce automation saving 10 hours per week",
+                    "Achieved #1 ranking out of 25 reps for 4 consecutive quarters"
+                ],
+                skills: ["B2B Sales", "CRM", "Negotiation", "Cold Calling", "Account Management", "Salesforce", "Pipeline Management", "Consultative Selling", "Relationship Building", "Closing", "Prospecting", "HubSpot"]
+            },
+            data: {
+                summary: [
+                    "Analytical Data Scientist with 4+ years of experience transforming complex datasets into actionable insights. Expert in Python, SQL, and machine learning with track record of improving business outcomes by 30%.",
+                    "Detail-oriented Data Analyst skilled in statistical analysis, data visualization, and predictive modeling. Proficient in Tableau, Python, and R.",
+                    "Results-driven Analytics Professional with experience building automated reporting systems and dashboards. Strong background in business intelligence and data storytelling."
+                ],
+                bullets: [
+                    "Built predictive models improving customer churn prediction accuracy by 85%",
+                    "Developed automated dashboards saving 20 hours per week of manual reporting",
+                    "Analyzed 10M+ records to identify $3M cost savings opportunity",
+                    "Created machine learning algorithm increasing recommendation accuracy by 40%",
+                    "Designed A/B tests that increased conversion rates by 25%",
+                    "Cleaned and transformed messy datasets improving data quality by 90%",
+                    "Presented insights to C-suite executives influencing $10M strategic decision",
+                    "Built ETL pipelines processing 1TB+ data daily",
+                    "Implemented statistical models reducing forecasting error by 35%",
+                    "Created data visualization dashboards adopted by 200+ users"
+                ],
+                skills: ["Python", "SQL", "Machine Learning", "Tableau", "R", "Statistics", "Data Visualization", "Pandas", "TensorFlow", "Excel", "BigQuery", "A/B Testing", "Data Mining"]
             },
             general: {
                 summary: [
-                    "Results-driven professional with 5+ years of experience delivering exceptional results in fast-paced environments.",
-                    "Proven track record of increasing efficiency, reducing costs, and leading high-performing teams."
+                    "Results-driven professional with 5+ years of experience delivering exceptional results in fast-paced environments. Proven track record of increasing efficiency and leading high-performing teams.",
+                    "Detail-oriented professional with strong analytical and problem-solving skills. Experienced in project management, process improvement, and cross-functional collaboration.",
+                    "Versatile professional with background in operations and team leadership. Skilled in strategic planning, budget management, and stakeholder communication."
                 ],
                 bullets: [
                     "Increased team productivity by 35% through process optimization and training initiatives",
@@ -1035,10 +1047,18 @@
                     "Led cross-functional team of 10+ members to achieve departmental goals",
                     "Implemented new systems that reduced operational costs by 25%",
                     "Developed strategic initiatives resulting in 40% revenue growth",
-                    "Recognized as top performer for consistently exceeding targets"
-                ]
+                    "Recognized as top performer for consistently exceeding targets",
+                    "Streamlined workflows reducing processing time by 50%",
+                    "Trained and mentored 15+ team members, improving retention by 30%",
+                    "Collaborated with 5 departments to launch company-wide initiative",
+                    "Analyzed processes and identified $500K annual savings opportunity"
+                ],
+                skills: ["Project Management", "Leadership", "Communication", "Data Analysis", "Strategic Planning", "Problem Solving", "Microsoft Office", "Team Management", "Budgeting", "Process Improvement"]
             }
         };
+
+        let currentTemplate = 'professional';
+        let currentRole = '';
 
         function selectTemplate(template) {
             currentTemplate = template;
@@ -1048,7 +1068,7 @@
 
             document.getElementById('resume-page').className = 'resume-page template-' + template;
 
-            // Add sample experience
+            // Add initial empty items
             addExperience();
             addEducation();
             updateResume();
@@ -1068,56 +1088,100 @@
             document.getElementById('section-' + section).classList.add('active');
         }
 
-        function updateAISuggestions() {
-            currentRole = document.getElementById('targetRole').value;
-            // Update any open suggestion boxes
-            document.querySelectorAll('.ai-suggestions').forEach(el => {
-                el.classList.remove('active');
-            });
-        }
+        function updateAI() {
+            const role = document.getElementById('targetRole').value;
+            currentRole = role;
 
-        function showSuggestions(textarea, type) {
-            const role = document.getElementById('targetRole').value || 'general';
-            const suggestions = aiSuggestions[role] || aiSuggestions.general;
+            const aiStatus = document.getElementById('aiStatus');
 
-            if (type === 'summary') {
-                const container = document.getElementById('ai-summary');
-                const items = container.querySelectorAll('.ai-suggestion-item');
+            if (role && aiDatabase[role]) {
+                aiStatus.innerHTML = '<span>⚡</span><span>AI Assistant Active - Suggestions ready!</span>';
+                aiStatus.classList.add('active');
 
-                items[0].querySelector('div:last-child').textContent = suggestions.summary[0];
-                items[1].querySelector('div:last-child').textContent = suggestions.summary[1];
+                // Show AI boxes
+                document.getElementById('ai-summary-box').style.display = 'block';
+                document.getElementById('ai-experience-box').style.display = 'block';
+                document.getElementById('ai-skills-box').style.display = 'block';
 
-                if (textarea.value.length < 50) {
-                    container.classList.add('active');
-                } else {
-                    container.classList.remove('active');
-                }
+                // Populate suggestions
+                populateAISuggestions(role);
+            } else {
+                aiStatus.innerHTML = '<span>🤖</span><span>Select a role to activate AI suggestions</span>';
+                aiStatus.classList.remove('active');
 
-                // Update word count
-                const words = textarea.value.trim().split(/\s+/).filter(w => w.length > 0).length;
-                document.getElementById('summary-count').textContent = words + ' words';
+                // Hide AI boxes
+                document.getElementById('ai-summary-box').style.display = 'none';
+                document.getElementById('ai-experience-box').style.display = 'none';
+                document.getElementById('ai-skills-box').style.display = 'none';
             }
         }
 
-        function applySuggestion(fieldId, element) {
-            const text = element.querySelector('div:last-child').textContent;
-            const field = document.getElementById(fieldId);
-            field.value = text;
-            field.focus();
-            updateResume();
+        function populateAISuggestions(role) {
+            const data = aiDatabase[role] || aiDatabase.general;
 
-            // Hide suggestions after applying
-            element.parentElement.classList.remove('active');
+            // Summary suggestions
+            const summaryList = document.getElementById('ai-summary-list');
+            summaryList.innerHTML = data.summary.map((s, i) => `
+                <button class="ai-chip" onclick="applyToSummary('${s.replace(/'/g, "\\'")}')">
+                    ${s.substring(0, 80)}...
+                    <small>Click to use this summary</small>
+                </button>
+            `).join('');
+
+            // Experience bullets
+            const expList = document.getElementById('ai-experience-list');
+            expList.innerHTML = data.bullets.map(b => `
+                <button class="ai-chip" onclick="addBulletToExperience('${b.replace(/'/g, "\\'")}')">
+                    • ${b}
+                </button>
+            `).join('');
+
+            // Skills
+            const skillsList = document.getElementById('ai-skills-list');
+            skillsList.innerHTML = data.skills.map(s => `
+                <button class="ai-chip" onclick="addSkill('${s}')" style="width: auto; flex: 0 0 auto;">
+                    + ${s}
+                </button>
+            `).join('');
+        }
+
+        function applyToSummary(text) {
+            document.getElementById('input-summary').value = text;
+            updateResume();
+            alert('✅ Summary applied! You can edit it to match your experience.');
+        }
+
+        function addBulletToExperience(bullet) {
+            const textareas = document.querySelectorAll('.exp-desc');
+            if (textareas.length > 0) {
+                const lastTextarea = textareas[textareas.length - 1];
+                const current = lastTextarea.value;
+                if (current) {
+                    lastTextarea.value = current + '\n• ' + bullet;
+                } else {
+                    lastTextarea.value = '• ' + bullet;
+                }
+                updateResume();
+            } else {
+                alert('Please add an experience entry first!');
+            }
+        }
+
+        function addSkill(skill) {
+            const input = document.getElementById('input-skills');
+            const current = input.value;
+            if (current) {
+                input.value = current + ', ' + skill;
+            } else {
+                input.value = skill;
+            }
+            updateResume();
         }
 
         function addExperience() {
             const container = document.getElementById('experience-list');
             const div = document.createElement('div');
             div.className = 'experience-item';
-
-            const role = document.getElementById('targetRole').value || 'general';
-            const suggestions = aiSuggestions[role]?.bullets || aiSuggestions.general.bullets;
-
             div.innerHTML = `
                 <button class="remove-btn" onclick="this.parentElement.remove(); updateResume();">Remove</button>
                 <div class="form-group">
@@ -1133,50 +1197,11 @@
                     <input type="text" class="exp-date" placeholder="e.g., Jan 2020 - Present" oninput="updateResume()">
                 </div>
                 <div class="form-group">
-                    <label>Description <small style="color: var(--text-light); font-weight: normal;">(Click for AI suggestions)</small></label>
-                    <textarea class="exp-desc" placeholder="Describe your achievements..."
-                        oninput="updateResume(); showExpSuggestions(this, ${container.children.length});"
-                        onfocus="showExpSuggestions(this, ${container.children.length});"
-                        style="min-height: 100px;"></textarea>
-
-                    <div class="ai-suggestions" id="ai-exp-${container.children.length}">
-                        <div class="ai-header">✨ Power Phrases for ${role.replace('_', ' ')}</div>
-                        ${suggestions.slice(0, 4).map(s => `
-                            <div class="ai-suggestion-item" onclick="applySuggestionToExp(this, ${container.children.length})">
-                                <div style="font-size: 0.9rem;">${s}</div>
-                            </div>
-                        `).join('')}
-                        <div style="font-size: 0.8rem; color: var(--text-light); margin-top: 0.5rem; text-align: center;">
-                            Click any phrase to add it • Mix and match for best results
-                        </div>
-                    </div>
+                    <label>Description <small style="color: var(--ai-purple); font-weight: 600;">(Use AI suggestions below!)</small></label>
+                    <textarea class="exp-desc" placeholder="Click the purple AI suggestions below to add powerful bullet points..." oninput="updateResume()" style="min-height: 100px;"></textarea>
                 </div>
             `;
-
             container.appendChild(div);
-        }
-
-        function showExpSuggestions(textarea, index) {
-            const role = document.getElementById('targetRole').value || 'general';
-            const container = document.getElementById('ai-exp-' + index);
-            if (container && textarea.value.length < 20) {
-                container.classList.add('active');
-            }
-        }
-
-        function applySuggestionToExp(element, index) {
-            const textarea = document.querySelectorAll('.exp-desc')[index];
-            const current = textarea.value;
-            const suggestion = element.querySelector('div').textContent;
-
-            if (current) {
-                textarea.value = current + '\n• ' + suggestion;
-            } else {
-                textarea.value = '• ' + suggestion;
-            }
-
-            updateResume();
-            element.parentElement.classList.remove('active');
         }
 
         function addEducation() {
@@ -1222,6 +1247,10 @@
             if (location) contactHtml += `<span>${location}</span>`;
             if (linkedin) contactHtml += `<span>${linkedin}</span>`;
             document.getElementById('preview-contact').innerHTML = contactHtml || '<span>Your contact information</span>';
+
+            // Word count
+            const words = summary.trim().split(/\s+/).filter(w => w.length > 0).length;
+            document.getElementById('summary-count').textContent = words + ' words';
 
             // Experience
             const expContainer = document.getElementById('preview-experience');
@@ -1275,6 +1304,9 @@
             skillsContainer.innerHTML = skills.length > 0
                 ? skills.map(s => `<span class="skill-tag">${s.trim()}</span>`).join('')
                 : '<span style="color: #9ca3af;">Add your skills...</span>';
+
+            // Skills count
+            document.getElementById('skills-count').textContent = skills.length + ' skills';
         }
 
         function downloadPDF() {
@@ -1331,12 +1363,6 @@
 
             alert('✅ Word document downloaded! Open in Microsoft Word.');
         }
-
-        // Initialize
-        window.onload = function() {
-            // Pre-select general role
-            document.getElementById('targetRole').value = 'general';
-        };
     </script>
 </body>
 </html>
