@@ -3,17 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart ATS Resume Builder</title>
+    <title>ATS Resume Builder</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
             --primary: #4f46e5;
-            --primary-light: #e0e7ff;
-            --primary-dark: #3730a3;
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
@@ -22,92 +20,68 @@
             --text: #0f172a;
             --text-secondary: #64748b;
             --border: #e2e8f0;
-            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
         }
 
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: 'Inter', sans-serif;
             background: var(--bg);
             height: 100vh;
             overflow: hidden;
-            color: var(--text);
         }
 
         .app-container {
             display: flex;
             height: 100vh;
-            gap: 0;
         }
 
-        /* Left Panel - Enhanced */
         .left-panel {
             width: 40%;
-            min-width: 420px;
+            min-width: 400px;
             background: var(--surface);
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            box-shadow: var(--shadow-lg);
-            z-index: 10;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
         }
 
         .panel-header {
-            padding: 1.5rem;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 1.25rem;
+            background: linear-gradient(135deg, var(--primary) 0%, #3730a3 100%);
             color: white;
-            position: relative;
         }
 
         .header-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
         }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-weight: 700;
-            font-size: 1.25rem;
-        }
+        .logo { font-weight: 700; font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
 
         .back-btn {
             background: rgba(255,255,255,0.2);
             border: none;
             color: white;
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
             cursor: pointer;
+            font-size: 1.2rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
-            font-size: 1.2rem;
         }
 
-        .back-btn:hover:not(:disabled) {
-            background: rgba(255,255,255,0.3);
-            transform: translateX(-2px);
-        }
+        .back-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-        .back-btn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-
-        /* Progress Steps */
-        .progress-container {
+        .progress-bar {
             display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            gap: 4px;
             margin-top: 0.5rem;
         }
 
-        .progress-step {
+        .progress-segment {
             flex: 1;
             height: 4px;
             background: rgba(255,255,255,0.3);
@@ -115,22 +89,9 @@
             transition: all 0.3s;
         }
 
-        .progress-step.active {
-            background: white;
-        }
+        .progress-segment.active { background: white; }
+        .progress-segment.completed { background: #34d399; }
 
-        .progress-step.completed {
-            background: #34d399;
-        }
-
-        .step-label {
-            font-size: 0.75rem;
-            opacity: 0.9;
-            margin-top: 0.5rem;
-            font-weight: 500;
-        }
-
-        /* Chat Area */
         .chat-messages {
             flex: 1;
             overflow-y: auto;
@@ -142,11 +103,11 @@
         }
 
         .message {
-            max-width: 95%;
-            animation: slideUp 0.3s ease;
+            max-width: 90%;
+            animation: slideIn 0.3s ease;
         }
 
-        @keyframes slideUp {
+        @keyframes slideIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
@@ -158,15 +119,14 @@
             padding: 1rem 1.25rem;
             border-radius: 16px;
             font-size: 0.95rem;
-            line-height: 1.6;
-            box-shadow: var(--shadow);
+            line-height: 1.5;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         .bot-message .message-bubble {
             background: white;
             border: 1px solid var(--border);
             border-bottom-left-radius: 4px;
-            color: var(--text);
         }
 
         .user-message .message-bubble {
@@ -175,29 +135,19 @@
             border-bottom-right-radius: 4px;
         }
 
-        /* Smart Suggestions */
         .suggestion-box {
             margin-top: 0.75rem;
             background: #eff6ff;
             border: 1px solid #bfdbfe;
             border-radius: 12px;
             padding: 1rem;
-            animation: fadeIn 0.3s ease;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .suggestion-header {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.8rem;
+        .suggestion-title {
+            font-size: 0.75rem;
             font-weight: 600;
             color: #1e40af;
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.5rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
@@ -218,17 +168,12 @@
             cursor: pointer;
             transition: all 0.2s;
             font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
         }
 
         .chip:hover {
             background: var(--primary);
             color: white;
-            border-color: var(--primary);
             transform: translateY(-1px);
-            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
         }
 
         .chip.secondary {
@@ -242,33 +187,19 @@
             color: white;
         }
 
-        .chip.metric {
-            background: #ecfdf5;
-            border-color: #6ee7b7;
-            color: #065f46;
-        }
-
-        .chip.metric:hover {
-            background: #065f46;
-            color: white;
-        }
-
-        /* Input Area */
         .input-container {
-            padding: 1.25rem;
+            padding: 1rem;
             background: white;
             border-top: 1px solid var(--border);
         }
 
         .input-wrapper {
             display: flex;
-            gap: 0.75rem;
-            align-items: flex-end;
+            gap: 0.5rem;
             background: #f8fafc;
-            padding: 0.75rem;
-            border-radius: 16px;
+            padding: 0.5rem;
+            border-radius: 12px;
             border: 2px solid var(--border);
-            transition: all 0.2s;
         }
 
         .input-wrapper:focus-within {
@@ -284,30 +215,20 @@
             font-size: 0.95rem;
             outline: none;
             font-family: inherit;
-            resize: none;
-            min-height: 24px;
-            max-height: 120px;
         }
 
         .send-btn {
             width: 40px;
             height: 40px;
-            border-radius: 12px;
+            border-radius: 10px;
             background: var(--primary);
             color: white;
             border: none;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
             font-size: 1.2rem;
         }
 
-        .send-btn:hover {
-            background: var(--primary-dark);
-            transform: scale(1.05);
-        }
+        .send-btn:hover { background: #3730a3; }
 
         /* Right Panel */
         .right-panel {
@@ -315,27 +236,18 @@
             display: flex;
             flex-direction: column;
             background: #f1f5f9;
-            overflow: hidden;
         }
 
-        /* ATS Score Header */
         .ats-header {
             background: white;
             padding: 1rem 1.5rem;
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 2rem;
+            gap: 1.5rem;
         }
 
-        .score-display {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .score-ring {
+        .score-circle {
             width: 60px;
             height: 60px;
             border-radius: 50%;
@@ -346,11 +258,9 @@
             position: relative;
             font-weight: 700;
             font-size: 1.1rem;
-            color: var(--text);
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        .score-ring::before {
+        .score-circle::before {
             content: '';
             position: absolute;
             width: 48px;
@@ -359,104 +269,62 @@
             border-radius: 50%;
         }
 
-        .score-value {
-            position: relative;
-            z-index: 1;
-        }
+        .score-value { position: relative; z-index: 1; }
 
-        .score-info h3 {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text);
-            margin-bottom: 0.25rem;
-        }
-
-        .score-info p {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
+        .score-info h3 { font-size: 0.9rem; font-weight: 600; }
+        .score-info p { font-size: 0.8rem; color: var(--text-secondary); }
 
         .keyword-cloud {
             display: flex;
             gap: 0.5rem;
             flex-wrap: wrap;
-            flex: 1;
-            justify-content: flex-end;
+            margin-left: auto;
         }
 
         .keyword-tag {
-            padding: 0.375rem 0.875rem;
+            padding: 0.25rem 0.75rem;
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            animation: popIn 0.3s ease;
         }
 
-        @keyframes popIn {
-            from { transform: scale(0.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
+        .keyword-tag.matched { background: #d1fae5; color: #065f46; }
+        .keyword-tag.missing { background: #fee2e2; color: #991b1b; opacity: 0.7; }
 
-        .keyword-tag.matched {
-            background: #d1fae5;
-            color: #065f46;
-            border: 1px solid #6ee7b7;
-        }
-
-        .keyword-tag.missing {
-            background: #fee2e2;
-            color: #991b1b;
-            border: 1px solid #fca5a5;
-            opacity: 0.7;
-        }
-
-        /* Preview Container */
         .preview-wrapper {
             flex: 1;
             overflow-y: auto;
             padding: 2rem;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
-            background: #e2e8f0;
         }
 
-        /* A4 Resume - Compact ATS Format */
         .resume-a4 {
             width: 210mm;
             min-height: 297mm;
-            height: 297mm; /* Fixed A4 height */
             background: white;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
-            padding: 15mm 20mm; /* Standard margins */
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            padding: 15mm 20mm;
             font-family: 'Calibri', 'Arial', sans-serif;
             font-size: 10.5pt;
             line-height: 1.3;
-            color: #000;
-            position: relative;
-            overflow: hidden;
         }
 
-        /* Compact Sections for ATS */
-        .resume-header-compact {
+        .resume-header {
             border-bottom: 1.5pt solid #000;
             padding-bottom: 8pt;
             margin-bottom: 10pt;
         }
 
-        .name-compact {
+        .resume-name {
             font-size: 16pt;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.5pt;
             margin-bottom: 4pt;
-            color: #000;
         }
 
-        .contact-compact {
+        .resume-contact {
             font-size: 9.5pt;
             color: #333;
             display: flex;
@@ -464,71 +332,40 @@
             flex-wrap: wrap;
         }
 
-        .section-compact {
-            margin-bottom: 10pt; /* Tight spacing */
-        }
+        .section { margin-bottom: 10pt; }
 
-        .section-title-compact {
+        .section-title {
             font-size: 11pt;
             font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 0.5pt;
             border-bottom: 0.5pt solid #000;
             margin-bottom: 6pt;
             padding-bottom: 2pt;
-            color: #000;
         }
 
-        .entry-compact {
-            margin-bottom: 8pt; /* Tight between entries */
-        }
+        .entry { margin-bottom: 8pt; }
 
-        .entry-header-compact {
+        .entry-header {
             display: flex;
             justify-content: space-between;
             margin-bottom: 2pt;
         }
 
-        .entry-title-compact {
-            font-weight: bold;
-            font-size: 10.5pt;
-        }
+        .entry-title { font-weight: bold; font-size: 10.5pt; }
+        .entry-date { font-size: 9.5pt; color: #333; font-style: italic; }
+        .entry-subtitle { font-size: 10pt; font-style: italic; color: #333; margin-bottom: 3pt; }
+        .entry-desc { font-size: 10pt; line-height: 1.3; }
 
-        .entry-date-compact {
-            font-size: 9.5pt;
-            color: #333;
-            font-style: italic;
-        }
+        .entry-desc ul { margin: 0; padding-left: 14pt; }
+        .entry-desc li { margin-bottom: 2pt; }
 
-        .entry-subtitle-compact {
-            font-size: 10pt;
-            font-style: italic;
-            color: #333;
-            margin-bottom: 3pt;
-        }
-
-        .entry-desc-compact {
-            font-size: 10pt;
-            line-height: 1.3;
-            text-align: justify;
-        }
-
-        .entry-desc-compact ul {
-            margin: 0;
-            padding-left: 14pt;
-        }
-
-        .entry-desc-compact li {
-            margin-bottom: 2pt;
-        }
-
-        .skills-compact {
+        .skills-list {
             display: flex;
             flex-wrap: wrap;
             gap: 4pt;
         }
 
-        .skill-tag-compact {
+        .skill-tag {
             background: #f3f4f6;
             padding: 2pt 6pt;
             border-radius: 3pt;
@@ -536,126 +373,12 @@
             border: 0.5pt solid #e5e7eb;
         }
 
-        /* Highlighting */
-        .highlight-match {
-            background-color: rgba(16, 185, 129, 0.2);
-            padding: 0 2px;
-            border-radius: 2px;
-        }
-
-        .highlight-missing {
-            background-color: rgba(239, 68, 68, 0.1);
-            border-bottom: 1px dotted #ef4444;
-        }
-
-        /* Job Description Input Modal */
-        .jd-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 3000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-        }
-
-        .jd-modal.active {
-            display: flex;
-        }
-
-        .jd-content {
-            background: white;
-            border-radius: 16px;
-            width: 100%;
-            max-width: 600px;
-            max-height: 80vh;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-            overflow: hidden;
-        }
-
-        .jd-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .jd-header h2 {
-            font-size: 1.25rem;
-            font-weight: 600;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: var(--text-secondary);
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-        }
-
-        .close-btn:hover {
-            background: #f3f4f6;
-        }
-
-        .jd-body {
-            padding: 1.5rem;
-            flex: 1;
-            overflow-y: auto;
-        }
-
-        .jd-textarea {
-            width: 100%;
-            min-height: 200px;
-            padding: 1rem;
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            font-family: inherit;
-            font-size: 0.95rem;
-            resize: vertical;
-            margin-bottom: 1rem;
-        }
-
-        .jd-textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .analyze-btn {
-            width: 100%;
-            padding: 0.875rem;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-
-        .analyze-btn:hover {
-            background: var(--primary-dark);
-        }
+        .highlight { background: rgba(16, 185, 129, 0.2); padding: 0 2px; border-radius: 2px; }
 
         /* Welcome Screen */
         .welcome-screen {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
             z-index: 2000;
             display: flex;
@@ -673,26 +396,10 @@
             border-radius: 24px;
             padding: 3rem;
             max-width: 600px;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
         }
 
-        .welcome-icon {
-            font-size: 4rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .welcome-card h1 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            font-weight: 700;
-        }
-
-        .welcome-card p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            margin-bottom: 2rem;
-            line-height: 1.6;
-        }
+        .welcome-card h1 { font-size: 2.5rem; margin-bottom: 1rem; }
+        .welcome-card p { font-size: 1.1rem; opacity: 0.9; margin-bottom: 2rem; }
 
         .start-btn {
             padding: 1rem 2.5rem;
@@ -703,115 +410,40 @@
             font-size: 1.1rem;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
         }
 
-        .start-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);
-        }
+        .start-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
 
-        .features-grid {
+        .features {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 1rem;
             margin-top: 2rem;
-            text-align: left;
         }
 
-        .feature-item {
+        .feature {
             background: rgba(255,255,255,0.1);
             padding: 1rem;
             border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .feature-item div:first-child {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .feature-item div:last-child {
             font-size: 0.85rem;
-            opacity: 0.9;
         }
 
         .hidden { display: none !important; }
-
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .app-container { flex-direction: column; }
-            .left-panel { width: 100%; height: 50vh; min-width: auto; }
-            .right-panel { height: 50vh; }
-            .resume-a4 { transform: scale(0.5); transform-origin: top center; }
-        }
-
-        /* Tooltip */
-        .smart-tooltip {
-            position: absolute;
-            background: #1e293b;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            z-index: 100;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.2s;
-            max-width: 250px;
-        }
-
-        .smart-tooltip.show {
-            opacity: 1;
-        }
-
-        .tooltip-title {
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-            color: #60a5fa;
-        }
     </style>
 </head>
 <body>
 
-    <!-- Job Description Modal -->
-    <div class="jd-modal" id="jdModal">
-        <div class="jd-content">
-            <div class="jd-header">
-                <h2>📋 Paste Job Description</h2>
-                <button class="close-btn" onclick="closeJDModal()">×</button>
-            </div>
-            <div class="jd-body">
-                <p style="margin-bottom: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
-                    Paste the job description here. I'll extract important keywords and tailor suggestions to match this specific role.
-                </p>
-                <textarea class="jd-textarea" id="jdInput" placeholder="Paste job description here..."></textarea>
-                <button class="analyze-btn" onclick="analyzeJobDescription()">Analyze & Extract Keywords</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Welcome Screen -->
     <div class="welcome-screen" id="welcomeScreen">
         <div class="welcome-card">
-            <div class="welcome-icon">🎯</div>
-            <h1>Smart ATS Resume Builder</h1>
-            <p>Create an ATS-optimized resume tailored to specific job descriptions. Get real-time keyword matching and suggestions.</p>
+            <div style="font-size: 4rem; margin-bottom: 1rem;">🎯</div>
+            <h1>ATS Resume Builder</h1>
+            <p>Create an optimized resume with real-time keyword suggestions and ATS scoring.</p>
             <button class="start-btn" onclick="startApp()">Start Building</button>
-            <div class="features-grid">
-                <div class="feature-item">
-                    <div>📄</div>
-                    <div>Perfect A4 Format</div>
-                </div>
-                <div class="feature-item">
-                    <div>⚡</div>
-                    <div>Keyword Matching</div>
-                </div>
-                <div class="feature-item">
-                    <div>🎨</div>
-                    <div>Smart Suggestions</div>
-                </div>
+            <div class="features">
+                <div class="feature">📄 Perfect A4 Format</div>
+                <div class="feature">⚡ Smart Suggestions</div>
+                <div class="feature">🎯 ATS Scoring</div>
             </div>
         </div>
     </div>
@@ -822,23 +454,17 @@
         <div class="left-panel">
             <div class="panel-header">
                 <div class="header-top">
-                    <div class="logo">
-                        <span>📝</span>
-                        <span>ResumeAI</span>
-                    </div>
-                    <button class="back-btn" id="backBtn" onclick="goBack()" disabled title="Go Back">←</button>
+                    <div class="logo">📝 ResumeAI</div>
+                    <button class="back-btn" id="backBtn" onclick="goBack()" disabled>←</button>
                 </div>
-                <div class="progress-container" id="progressContainer">
-                    <!-- Steps generated by JS -->
-                </div>
-                <div class="step-label" id="stepLabel">Step 1 of 8</div>
+                <div class="progress-bar" id="progressBar"></div>
             </div>
 
             <div class="chat-messages" id="chatMessages"></div>
 
             <div class="input-container">
                 <div class="input-wrapper">
-                    <textarea class="chat-input" id="userInput" placeholder="Type your response..." rows="1"></textarea>
+                    <input type="text" class="chat-input" id="userInput" placeholder="Type your response..." onkeypress="if(event.key==='Enter')handleSend()">
                     <button class="send-btn" onclick="handleSend()">↑</button>
                 </div>
             </div>
@@ -847,24 +473,21 @@
         <!-- Right Panel -->
         <div class="right-panel">
             <div class="ats-header">
-                <div class="score-display">
-                    <div class="score-ring" id="scoreRing" style="--score: 0;">
-                        <span class="score-value" id="scoreValue">0</span>
-                    </div>
-                    <div class="score-info">
-                        <h3>ATS Match Score</h3>
-                        <p id="scoreText">Start building to see score</p>
-                    </div>
+                <div class="score-circle" id="scoreCircle" style="--score: 0;">
+                    <span class="score-value" id="scoreValue">0</span>
+                </div>
+                <div class="score-info">
+                    <h3>ATS Score</h3>
+                    <p id="scoreText">Start building</p>
                 </div>
                 <div class="keyword-cloud" id="keywordCloud"></div>
             </div>
 
             <div class="preview-wrapper">
                 <div class="resume-a4" id="resumePreview">
-                    <div style="height: 100%; display: flex; align-items: center; justify-content: center; color: #94a3b8; flex-direction: column;">
+                    <div style="text-align: center; color: #94a3b8; padding-top: 100px;">
                         <div style="font-size: 3rem; margin-bottom: 1rem;">📄</div>
-                        <div>Your optimized resume will appear here</div>
-                        <div style="font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.7;">Fits perfectly on A4</div>
+                        <div>Your resume will appear here</div>
                     </div>
                 </div>
             </div>
@@ -872,184 +495,146 @@
     </div>
 
     <script>
-        // State Management
+        // Data
         const state = {
             step: 0,
             history: [],
             data: {
                 targetRole: '',
-                name: '',
-                title: '',
-                email: '',
-                phone: '',
-                location: '',
-                summary: '',
-                experience: [],
-                education: [],
-                skills: []
+                name: '', title: '', email: '', phone: '', location: '',
+                summary: '', experience: [], education: [], skills: []
             },
-            currentExperience: null,
-            currentEducation: null,
-            jdKeywords: [],
+            currentExp: null,
+            currentEdu: null,
             industry: 'general',
             atsScore: 0
         };
 
-        // Comprehensive keyword database
-        const keywordDB = {
-            software: ['Python', 'JavaScript', 'TypeScript', 'React', 'Node.js', 'AWS', 'Docker', 'Kubernetes', 'CI/CD', 'Git', 'SQL', 'NoSQL', 'MongoDB', 'PostgreSQL', 'REST API', 'GraphQL', 'Microservices', 'Agile', 'Scrum', 'DevOps', 'Machine Learning', 'AI', 'Cloud', 'Azure', 'GCP'],
-            marketing: ['SEO', 'SEM', 'Google Analytics', 'Content Strategy', 'Social Media', 'Brand Management', 'Campaign Management', 'Market Research', 'CRM', 'HubSpot', 'Salesforce', 'Email Marketing', 'PPC', 'CRO', 'A/B Testing', 'Marketing Automation', 'Copywriting', 'Digital Marketing'],
-            sales: ['B2B', 'B2C', 'CRM', 'Salesforce', 'Lead Generation', 'Cold Calling', 'Negotiation', 'Account Management', 'Pipeline Management', 'Quota Achievement', 'Relationship Building', 'Consultative Selling', 'Sales Strategy', 'Business Development'],
-            pm: ['Agile', 'Scrum', 'Kanban', 'JIRA', 'Confluence', 'Stakeholder Management', 'Risk Management', 'Budget Management', 'PMP', 'Cross-functional', 'Sprint Planning', 'Roadmap', 'User Stories', 'Backlog'],
-            general: ['Communication', 'Leadership', 'Problem Solving', 'Team Management', 'Strategic Planning', 'Data Analysis', 'Microsoft Office', 'Excel', 'PowerPoint', 'Project Management', 'Time Management']
+        const keywords = {
+            software: ['Python', 'JavaScript', 'React', 'Node.js', 'AWS', 'Docker', 'Kubernetes', 'SQL', 'Git', 'Agile', 'REST API', 'Cloud'],
+            marketing: ['SEO', 'SEM', 'Google Analytics', 'Content Strategy', 'Social Media', 'CRM', 'Email Marketing', 'PPC', 'Brand Management'],
+            sales: ['B2B', 'CRM', 'Salesforce', 'Lead Generation', 'Negotiation', 'Account Management', 'Pipeline Management'],
+            general: ['Communication', 'Leadership', 'Project Management', 'Microsoft Office', 'Excel', 'Strategic Planning']
         };
 
-        const actionVerbs = ['Achieved', 'Implemented', 'Streamlined', 'Optimized', 'Led', 'Managed', 'Developed', 'Created', 'Increased', 'Reduced', 'Improved', 'Designed', 'Launched', 'Negotiated', 'Collaborated', 'Analyzed', 'Delivered', 'Exceeded'];
+        const actionWords = ['Led', 'Managed', 'Developed', 'Created', 'Implemented', 'Increased', 'Reduced', 'Improved', 'Designed', 'Launched'];
 
-        // FIXED Conversation Flow - Added missing 'next' properties
-        const flow = [
+        // Steps - Clean and Simple
+        const steps = [
             {
                 id: 'role',
-                title: 'Target Role',
-                message: "What specific job title are you applying for? (e.g., 'Senior Frontend Developer' or 'Marketing Manager')",
-                suggestions: ['Software Engineer', 'Product Manager', 'Marketing Director', 'Sales Representative', 'Project Manager'],
-                next: 'jd',  // FIXED: Added this line
-                handler: (input) => {
-                    state.data.targetRole = input;
-                    detectIndustry(input);
-                    return true;
-                }
-            },
-            {
-                id: 'jd',
-                title: 'Job Description',
-                message: "Want to paste a job description? I'll extract keywords to tailor your resume perfectly! Or skip to continue.",
-                quickReplies: ['Paste Job Description', 'Skip for now'],
-                next: 'name',  // FIXED: Added default next
-                handler: (input) => {
-                    if (input.includes('Paste') || input.includes('job')) {
-                        openJDModal();
-                        return false; // Wait for modal
-                    }
-                    return true;
-                }
+                question: "What job title are you targeting? (e.g., Software Engineer, Marketing Manager)",
+                suggestions: ['Software Engineer', 'Product Manager', 'Marketing Director', 'Sales Representative', 'Data Analyst'],
+                field: 'targetRole'
             },
             {
                 id: 'name',
-                title: 'Personal Info',
-                message: "Full name as it appears on official documents?",
-                next: 'contact'
+                question: "What's your full name?",
+                field: 'name'
             },
             {
-                id: 'contact',
-                title: 'Contact',
-                message: "Professional email address?",
-                next: 'phone'
+                id: 'title',
+                question: "What title should appear on your resume?",
+                suggestions: ['Senior Software Engineer', 'Marketing Manager', 'Product Manager', 'Sales Executive'],
+                field: 'title'
+            },
+            {
+                id: 'email',
+                question: "Your email address?",
+                field: 'email'
             },
             {
                 id: 'phone',
-                title: 'Phone',
-                message: "Phone number with area code?",
-                next: 'location'
+                question: "Phone number?",
+                field: 'phone'
             },
             {
                 id: 'location',
-                title: 'Location',
-                message: "City, State (or 'Remote')?",
-                next: 'summary'
+                question: "City and State?",
+                field: 'location'
             },
             {
                 id: 'summary',
-                title: 'Summary',
-                message: "Write a compelling professional summary. Include your years of experience and key expertise areas.",
-                analyze: true,
-                suggestions: 'dynamic',
-                next: 'experience'
+                question: "Write a professional summary (2-3 sentences about your experience and strengths).",
+                suggestions: actionWords.slice(0, 5),
+                field: 'summary'
             },
             {
-                id: 'experience',
-                title: 'Experience',
-                message: "Most recent job title?",
-                next: 'exp_company'
+                id: 'exp_title',
+                question: "Most recent job title?",
+                suggestions: ['Software Engineer', 'Senior Developer', 'Team Lead', 'Manager'],
+                store: (val) => { state.currentExp = {title: val, company: '', date: '', desc: ''}; }
             },
             {
                 id: 'exp_company',
-                title: 'Company',
-                message: "Company name?",
-                next: 'exp_date'
+                question: "Company name?",
+                store: (val) => { state.currentExp.company = val; }
             },
             {
                 id: 'exp_date',
-                title: 'Dates',
-                message: "Employment dates? (e.g., Jan 2020 - Present)",
-                next: 'exp_desc'
+                question: "Dates employed? (e.g., Jan 2020 - Present)",
+                store: (val) => { state.currentExp.date = val; }
             },
             {
                 id: 'exp_desc',
-                title: 'Description',
-                message: "Describe your achievements. Use numbers and action verbs! I'll suggest improvements as you type.",
-                analyze: true,
-                suggestions: 'dynamic',
+                question: "Describe your achievements. Use action verbs and numbers!",
+                suggestions: ['Led team of 5', 'Increased revenue by 20%', 'Implemented new system', 'Reduced costs by 15%'],
                 multiline: true,
-                next: 'exp_more'
+                store: (val) => {
+                    state.currentExp.desc = val;
+                    state.data.experience.push({...state.currentExp});
+                }
             },
             {
                 id: 'exp_more',
-                title: 'Add More?',
-                message: "Add another position?",
-                quickReplies: ['Yes, add more', 'No, continue'],
-                next: 'education',  // FIXED: Added default next
-                handler: (input) => {
-                    if (input.includes('Yes')) {
-                        saveExperience();
-                        setTimeout(() => goToStep('experience'), 300);
+                question: "Add another position?",
+                options: ['Yes, add another', 'No, continue'],
+                handler: (val) => {
+                    if (val.includes('Yes')) {
+                        setTimeout(() => jumpToStep(7), 300); // Back to exp_title
                         return false;
                     }
-                    saveExperience();
                     return true;
                 }
             },
             {
-                id: 'education',
-                title: 'Education',
-                message: "Highest degree? (e.g., BS Computer Science)",
-                next: 'edu_school'
+                id: 'edu_degree',
+                question: "Highest degree? (e.g., BS Computer Science)",
+                store: (val) => { state.currentEdu = {degree: val, school: '', date: ''}; }
             },
             {
                 id: 'edu_school',
-                title: 'School',
-                message: "University/Institution name?",
-                next: 'edu_date'
+                question: "University/Institution?",
+                store: (val) => { state.currentEdu.school = val; }
             },
             {
                 id: 'edu_date',
-                title: 'Graduation',
-                message: "Graduation year?",
-                next: 'edu_more'
+                question: "Graduation year?",
+                store: (val) => {
+                    state.currentEdu.date = val;
+                    state.data.education.push({...state.currentEdu});
+                }
             },
             {
                 id: 'edu_more',
-                title: 'More Education?',
-                message: "Add another degree?",
-                quickReplies: ['Yes', 'No, continue to skills'],
-                next: 'skills',  // FIXED: Added default next
-                handler: (input) => {
-                    if (input.includes('Yes')) {
-                        saveEducation();
-                        setTimeout(() => goToStep('education'), 300);
+                question: "Add another degree?",
+                options: ['Yes', 'No, continue to skills'],
+                handler: (val) => {
+                    if (val.includes('Yes')) {
+                        setTimeout(() => jumpToStep(12), 300);
                         return false;
                     }
-                    saveEducation();
                     return true;
                 }
             },
             {
                 id: 'skills',
-                title: 'Skills',
-                message: "Technical skills & tools. Separate with commas. I'll check against job keywords!",
-                analyze: true,
-                suggestions: 'skills',
-                next: 'finish'
+                question: "List your skills (comma separated). I'll check for ATS keywords!",
+                suggestions: (() => {
+                    const ind = detectIndustry(state.data.targetRole);
+                    return keywords[ind].slice(0, 6);
+                }),
+                field: 'skills'
             }
         ];
 
@@ -1058,88 +643,43 @@
             document.getElementById('welcomeScreen').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
             renderProgress();
-            showStep();
+            showCurrentStep();
         }
 
         function renderProgress() {
-            const container = document.getElementById('progressContainer');
-            container.innerHTML = flow.map((step, idx) =>
-                `<div class="progress-step ${idx === 0 ? 'active' : ''}" data-step="${idx}"></div>`
+            const bar = document.getElementById('progressBar');
+            bar.innerHTML = steps.map((_, i) =>
+                `<div class="progress-segment ${i===0?'active':''}" id="prog-${i}"></div>`
             ).join('');
         }
 
         function updateProgress() {
-            const steps = document.querySelectorAll('.progress-step');
-            steps.forEach((step, idx) => {
-                step.classList.remove('active', 'completed');
-                if (idx < state.step) step.classList.add('completed');
-                else if (idx === state.step) step.classList.add('active');
+            steps.forEach((_, i) => {
+                const el = document.getElementById(`prog-${i}`);
+                el.className = 'progress-segment';
+                if (i < state.step) el.classList.add('completed');
+                else if (i === state.step) el.classList.add('active');
             });
-            document.getElementById('stepLabel').textContent = `Step ${state.step + 1} of ${flow.length}`;
             document.getElementById('backBtn').disabled = state.step === 0;
         }
 
-        function showStep() {
-            const step = flow[state.step];
-            if (!step) return;
+        function showCurrentStep() {
+            const step = steps[state.step];
+            if (!step) {
+                finishResume();
+                return;
+            }
 
             updateProgress();
 
-            let msg = step.message;
-            if (step.id === 'summary' && state.data.targetRole) {
-                msg += `\n\n💡 Tip: Mention your expertise in ${state.data.targetRole} relevant skills.`;
-            }
+            let suggestions = step.suggestions || [];
+            if (typeof suggestions === 'function') suggestions = suggestions();
 
-            const suggestions = getSuggestions(step);
-            addBotMessage(msg, step.quickReplies || [], suggestions);
+            addBotMessage(step.question, suggestions, step.options);
         }
 
-        function getSuggestions(step) {
-            if (step.suggestions === 'dynamic') {
-                return generateDynamicSuggestions();
-            } else if (step.suggestions === 'skills') {
-                return getSkillSuggestions();
-            } else if (Array.isArray(step.suggestions)) {
-                return step.suggestions;
-            }
-            return [];
-        }
-
-        function generateDynamicSuggestions() {
-            const suggestions = [];
-
-            // Add action verbs
-            suggestions.push(...actionVerbs.slice(0, 4).map(v => ({text: v, type: 'action'})));
-
-            // Add metrics
-            suggestions.push(
-                {text: 'increased by X%', type: 'metric'},
-                {text: 'resulting in $X savings', type: 'metric'},
-                {text: 'managing team of X', type: 'metric'}
-            );
-
-            // Add JD keywords if available
-            if (state.jdKeywords.length > 0) {
-                const relevant = state.jdKeywords.slice(0, 3);
-                suggestions.push(...relevant.map(k => ({text: k, type: 'keyword'})));
-            }
-
-            return suggestions;
-        }
-
-        function getSkillSuggestions() {
-            const base = keywordDB[state.industry] || keywordDB.general;
-            // Prioritize JD keywords
-            const jd = state.jdKeywords.filter(k => !state.data.skills.includes(k));
-            return [...jd.slice(0, 4), ...base.slice(0, 4)];
-        }
-
-        function addBotMessage(text, quickReplies = [], suggestions = []) {
+        function addBotMessage(text, suggestions = [], options = []) {
             const container = document.getElementById('chatMessages');
-
-            // Remove old suggestions to keep chat clean
-            const oldSuggestions = container.querySelectorAll('.suggestion-box');
-            oldSuggestions.forEach(el => el.remove());
 
             const div = document.createElement('div');
             div.className = 'message bot-message';
@@ -1148,25 +688,18 @@
 
             if (suggestions.length > 0) {
                 html += `<div class="suggestion-box">
-                    <div class="suggestion-header">✨ Smart Suggestions</div>
+                    <div class="suggestion-title">💡 Suggestions</div>
                     <div class="suggestion-chips">
-                        ${suggestions.map(s => {
-                            if (typeof s === 'string') {
-                                return `<button class="chip" onclick="insertText('${s}')">${s}</button>`;
-                            } else {
-                                const className = s.type === 'metric' ? 'chip metric' : s.type === 'keyword' ? 'chip' : 'chip secondary';
-                                return `<button class="${className}" onclick="insertText('${s.text}')">${s.text}</button>`;
-                            }
-                        }).join('')}
+                        ${suggestions.map(s => `<button class="chip" onclick="insertChip('${s}')">${s}</button>`).join('')}
                     </div>
                 </div>`;
             }
 
-            if (quickReplies.length > 0) {
-                html += `<div class="suggestion-box" style="background: white; border-color: var(--border);">
-                    <div class="suggestion-header" style="color: var(--text-secondary);">Quick Options</div>
+            if (options && options.length > 0) {
+                html += `<div class="suggestion-box" style="background:white; border-color:var(--border);">
+                    <div class="suggestion-title" style="color:var(--text-secondary);">Options</div>
                     <div class="suggestion-chips">
-                        ${quickReplies.map(r => `<button class="chip secondary" onclick="useQuickReply('${r}')">${r}</button>`).join('')}
+                        ${options.map(o => `<button class="chip secondary" onclick="insertChip('${o}')">${o}</button>`).join('')}
                     </div>
                 </div>`;
             }
@@ -1185,16 +718,7 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        function insertText(text) {
-            const input = document.getElementById('userInput');
-            const current = input.value;
-            const separator = current && !current.endsWith(' ') ? ' ' : '';
-            input.value = current + separator + text + ' ';
-            input.focus();
-            analyzeInput(input.value);
-        }
-
-        function useQuickReply(text) {
+        function insertChip(text) {
             document.getElementById('userInput').value = text;
             handleSend();
         }
@@ -1207,413 +731,234 @@
             addUserMessage(text);
             input.value = '';
 
-            const step = flow[state.step];
+            const step = steps[state.step];
 
             // Store data
-            storeData(step.id, text);
-
-            // Analyze if needed
-            if (step.analyze) analyzeText(text, step.id);
-
-            // Advance to next step
-            setTimeout(() => {
-                if (step.handler) {
-                    const result = step.handler(text);
-                    if (result === false) return;
+            if (step.field) {
+                if (step.field === 'skills') {
+                    state.data.skills = text.split(',').map(s => s.trim()).filter(s => s);
+                } else {
+                    state.data[step.field] = text;
                 }
+            }
+            if (step.store) step.store(text);
 
-                // FIXED: Better navigation logic
-                if (step.next) {
-                    if (step.next === 'finish') {
-                        finishResume();
-                    } else {
-                        const nextIdx = flow.findIndex(s => s.id === step.next);
-                        if (nextIdx !== -1) {
-                            state.history.push(state.step);
-                            state.step = nextIdx;
-                            showStep();
-                        }
-                    }
-                }
-            }, 600);
+            // Detect industry on first step
+            if (step.id === 'role') {
+                state.industry = detectIndustry(text);
+            }
+
+            // Custom handler
+            let shouldAdvance = true;
+            if (step.handler) {
+                shouldAdvance = step.handler(text);
+            }
+
+            if (shouldAdvance) {
+                state.history.push(state.step);
+                state.step++;
+                setTimeout(showCurrentStep, 500);
+            }
+
+            updatePreview();
+            calculateScore();
         }
 
         function goBack() {
             if (state.history.length > 0) {
                 state.step = state.history.pop();
-                showStep();
+                showCurrentStep();
             }
         }
 
-        function goToStep(stepId) {
-            const idx = flow.findIndex(s => s.id === stepId);
-            if (idx !== -1) {
-                state.history.push(state.step);
-                state.step = idx;
-                showStep();
-            }
+        function jumpToStep(index) {
+            state.history.push(state.step);
+            state.step = index;
+            showCurrentStep();
         }
 
-        // Data Storage
-        function storeData(stepId, text) {
-            switch(stepId) {
-                case 'role': state.data.targetRole = text; break;
-                case 'name': state.data.name = text; break;
-                case 'contact': state.data.email = text; break;
-                case 'phone': state.data.phone = text; break;
-                case 'location': state.data.location = text; break;
-                case 'summary': state.data.summary = text; break;
-                case 'experience':
-                    state.currentExperience = {title: text, company: '', date: '', description: ''};
-                    break;
-                case 'exp_company': state.currentExperience.company = text; break;
-                case 'exp_date': state.currentExperience.date = text; break;
-                case 'exp_desc': state.currentExperience.description = text; break;
-                case 'education': state.currentEducation = {degree: text, school: '', date: ''}; break;
-                case 'edu_school': state.currentEducation.school = text; break;
-                case 'edu_date': state.currentEducation.date = text; break;
-                case 'skills': state.data.skills = text.split(',').map(s => s.trim()).filter(s => s); break;
-            }
-            updatePreview();
-            calculateScore();
-        }
-
-        function saveExperience() {
-            if (state.currentExperience) {
-                state.data.experience.push({...state.currentExperience});
-                state.currentExperience = null;
-            }
-        }
-
-        function saveEducation() {
-            if (state.currentEducation) {
-                state.data.education.push({...state.currentEducation});
-                state.currentEducation = null;
-            }
-        }
-
-        // Analysis
         function detectIndustry(role) {
             const r = role.toLowerCase();
-            if (r.includes('software') || r.includes('developer') || r.includes('engineer')) state.industry = 'software';
-            else if (r.includes('marketing')) state.industry = 'marketing';
-            else if (r.includes('sales')) state.industry = 'sales';
-            else if (r.includes('product') || r.includes('project')) state.industry = 'pm';
-            else state.industry = 'general';
+            if (r.includes('software') || r.includes('developer') || r.includes('engineer')) return 'software';
+            if (r.includes('marketing')) return 'marketing';
+            if (r.includes('sales')) return 'sales';
+            return 'general';
         }
 
-        function analyzeText(text, context) {
-            const issues = [];
-
-            // Check weak words
-            const weak = ['responsible for', 'helped', 'assisted', 'worked on', 'participated in'];
-            weak.forEach(w => {
-                if (text.toLowerCase().includes(w)) {
-                    issues.push(`⚠️ Replace "${w}" with an action verb`);
-                }
-            });
-
-            // Check metrics in experience
-            if (context === 'exp_desc') {
-                if (!/\d/.test(text)) {
-                    issues.push('💡 Add specific numbers (%, $, time periods)');
-                }
-                if (!actionVerbs.some(v => text.toLowerCase().includes(v.toLowerCase()))) {
-                    issues.push('⚡ Start with action verbs (Led, Implemented, etc.)');
-                }
-            }
-
-            if (issues.length > 0) {
-                setTimeout(() => {
-                    addBotMessage(issues.join('\n\n'), [], []);
-                }, 800);
-            }
-        }
-
-        function analyzeInput(text) {
-            // Real-time preview update
-            clearTimeout(window.previewTimer);
-            window.previewTimer = setTimeout(() => {
-                const step = flow[state.step];
-                if (step.id === 'summary') state.data.summary = text;
-                if (step.id === 'exp_desc' && state.currentExperience) {
-                    state.currentExperience.description = text;
-                }
-                updatePreview();
-            }, 300);
-        }
-
-        // Job Description Modal
-        function openJDModal() {
-            document.getElementById('jdModal').classList.add('active');
-        }
-
-        function closeJDModal() {
-            document.getElementById('jdModal').classList.remove('active');
-        }
-
-        function analyzeJobDescription() {
-            const text = document.getElementById('jdInput').value;
-            if (!text) return;
-
-            // Extract keywords (simplified - in real app use NLP)
-            const words = text.toLowerCase().split(/\W+/);
-            const allKeywords = [...keywordDB.software, ...keywordDB.marketing, ...keywordDB.sales, ...keywordDB.pm];
-            const found = allKeywords.filter(k => words.includes(k.toLowerCase()));
-
-            state.jdKeywords = [...new Set(found)];
-
-            closeJDModal();
-            addBotMessage(`✅ Found ${state.jdKeywords.length} relevant keywords: ${state.jdKeywords.slice(0, 5).join(', ')}... I'll suggest these throughout your resume!`, [], []);
-
-            // Continue to next step
-            setTimeout(() => {
-                const nextIdx = flow.findIndex(s => s.id === 'name');
-                if (nextIdx !== -1) {
-                    state.step = nextIdx;
-                    showStep();
-                }
-            }, 1500);
-        }
-
-        // Scoring
         function calculateScore() {
             let score = 0;
-            const data = state.data;
+            const d = state.data;
 
-            // Completeness (40 points)
-            if (data.name) score += 5;
-            if (data.title || data.targetRole) score += 5;
-            if (data.email) score += 5;
-            if (data.phone) score += 5;
-            if (data.location) score += 5;
-            if (data.summary && data.summary.length > 50) score += 10;
-            if (data.experience.length > 0) score += 10;
-            if (data.skills.length > 0) score += 5;
-
-            // Quality (30 points)
-            if (data.summary && data.summary.length > 150) score += 10;
-            if (data.experience.some(e => /\d/.test(e.description))) score += 10;
-            if (data.experience.some(e => actionVerbs.some(v => e.description.toLowerCase().includes(v.toLowerCase())))) score += 10;
-
-            // Keyword matching (30 points)
-            const allText = `${data.summary} ${data.experience.map(e => e.description).join(' ')} ${data.skills.join(' ')}`.toLowerCase();
-            const keywords = state.jdKeywords.length > 0 ? state.jdKeywords : (keywordDB[state.industry] || keywordDB.general);
-            const matches = keywords.filter(k => allText.includes(k.toLowerCase()));
-            score += Math.min(30, matches.length * 3);
-
-            state.atsScore = Math.min(100, score);
-            updateScoreUI(matches, keywords);
-        }
-
-        function updateScoreUI(matches, allKeywords) {
-            const ring = document.getElementById('scoreRing');
-            const value = document.getElementById('scoreValue');
-            const text = document.getElementById('scoreText');
-            const cloud = document.getElementById('keywordCloud');
-
-            ring.style.setProperty('--score', state.atsScore);
-            value.textContent = state.atsScore;
-
-            // Color coding
-            const color = state.atsScore < 50 ? 'var(--danger)' : state.atsScore < 80 ? 'var(--warning)' : 'var(--success)';
-            ring.style.background = `conic-gradient(${color} ${state.atsScore}%, #e2e8f0 0)`;
-
-            if (state.atsScore < 50) text.textContent = 'Needs improvement';
-            else if (state.atsScore < 80) text.textContent = 'Good match';
-            else text.textContent = 'Excellent match!';
+            // Completeness
+            if (d.name) score += 10;
+            if (d.title) score += 10;
+            if (d.email && d.phone) score += 10;
+            if (d.summary) score += 15;
+            if (d.experience.length > 0) score += 20;
+            if (d.education.length > 0) score += 15;
+            if (d.skills.length > 0) score += 10;
 
             // Keywords
-            const displayMatches = matches.slice(0, 4);
-            const missing = allKeywords.filter(k => !matches.includes(k)).slice(0, 2);
+            const indKeywords = keywords[state.industry] || keywords.general;
+            const content = `${d.summary} ${d.experience.map(e => e.desc).join(' ')} ${d.skills.join(' ')}`.toLowerCase();
+            const matches = indKeywords.filter(k => content.includes(k.toLowerCase()));
+            score += Math.min(20, matches.length * 2);
+
+            state.atsScore = Math.min(100, score);
+            updateScoreUI(matches, indKeywords);
+        }
+
+        function updateScoreUI(matches, all) {
+            const circle = document.getElementById('scoreCircle');
+            const val = document.getElementById('scoreValue');
+            const txt = document.getElementById('scoreText');
+            const cloud = document.getElementById('keywordCloud');
+
+            circle.style.setProperty('--score', state.atsScore);
+            val.textContent = state.atsScore;
+
+            const color = state.atsScore < 50 ? 'var(--danger)' : state.atsScore < 80 ? 'var(--warning)' : 'var(--success)';
+            circle.style.background = `conic-gradient(${color} ${state.atsScore}%, #e2e8f0 0)`;
+
+            txt.textContent = state.atsScore < 50 ? 'Needs work' : state.atsScore < 80 ? 'Good progress' : 'ATS Ready!';
 
             cloud.innerHTML = [
-                ...displayMatches.map(k => `<span class="keyword-tag matched">✓ ${k}</span>`),
-                ...missing.map(k => `<span class="keyword-tag missing">+ ${k}</span>`)
+                ...matches.slice(0, 3).map(m => `<span class="keyword-tag matched">✓ ${m}</span>`),
+                ...all.filter(k => !matches.includes(k)).slice(0, 2).map(m => `<span class="keyword-tag missing">+ ${m}</span>`)
             ].join('');
         }
 
-        // Preview - Compact A4 Format
         function updatePreview() {
-            const data = state.data;
-            const preview = document.getElementById('resumePreview');
+            const d = state.data;
+            const el = document.getElementById('resumePreview');
 
-            if (!data.name && !data.experience.length) {
-                preview.innerHTML = `
-                    <div style="height: 100%; display: flex; align-items: center; justify-content: center; color: #94a3b8; flex-direction: column;">
-                        <div style="font-size: 3rem; margin-bottom: 1rem;">📄</div>
-                        <div>Your optimized resume will appear here</div>
-                    </div>`;
+            if (!d.name) {
+                el.innerHTML = `<div style="text-align:center; color:#94a3b8; padding-top:100px;"><div style="font-size:3rem; margin-bottom:1rem;">📄</div>Your resume will appear here</div>`;
                 return;
             }
 
-            // Compact ATS Format
             let html = `
-                <div class="resume-header-compact">
-                    <div class="name-compact">${escapeHtml(data.name) || 'YOUR NAME'}</div>
-                    <div class="contact-compact">
-                        ${data.email ? escapeHtml(data.email) : ''}
-                        ${data.phone ? ' • ' + escapeHtml(data.phone) : ''}
-                        ${data.location ? ' • ' + escapeHtml(data.location) : ''}
+                <div class="resume-header">
+                    <div class="resume-name">${escapeHtml(d.name)}</div>
+                    <div class="resume-contact">
+                        ${d.email ? escapeHtml(d.email) : ''}
+                        ${d.phone ? ' • ' + escapeHtml(d.phone) : ''}
+                        ${d.location ? ' • ' + escapeHtml(d.location) : ''}
                     </div>
                 </div>
             `;
 
-            if (data.summary) {
-                html += `
-                    <div class="section-compact">
-                        <div class="section-title-compact">Professional Summary</div>
-                        <div class="entry-desc-compact">${highlightKeywords(escapeHtml(data.summary))}</div>
-                    </div>
-                `;
+            if (d.summary) {
+                html += `<div class="section"><div class="section-title">Professional Summary</div><div class="entry-desc">${highlightKeywords(escapeHtml(d.summary))}</div></div>`;
             }
 
-            if (data.experience.length > 0) {
-                html += '<div class="section-compact"><div class="section-title-compact">Professional Experience</div>';
-                data.experience.forEach(exp => {
+            if (d.experience.length > 0) {
+                html += `<div class="section"><div class="section-title">Experience</div>`;
+                d.experience.forEach(exp => {
                     html += `
-                        <div class="entry-compact">
-                            <div class="entry-header-compact">
-                                <span class="entry-title-compact">${escapeHtml(exp.title)}</span>
-                                <span class="entry-date-compact">${escapeHtml(exp.date)}</span>
+                        <div class="entry">
+                            <div class="entry-header">
+                                <span class="entry-title">${escapeHtml(exp.title)}</span>
+                                <span class="entry-date">${escapeHtml(exp.date)}</span>
                             </div>
-                            <div class="entry-subtitle-compact">${escapeHtml(exp.company)}</div>
-                            <div class="entry-desc-compact">${formatBullets(exp.description)}</div>
+                            <div class="entry-subtitle">${escapeHtml(exp.company)}</div>
+                            <div class="entry-desc">${formatDesc(exp.desc)}</div>
                         </div>
                     `;
                 });
-                html += '</div>';
+                html += `</div>`;
             }
 
-            if (data.education.length > 0) {
-                html += '<div class="section-compact"><div class="section-title-compact">Education</div>';
-                data.education.forEach(edu => {
+            if (d.education.length > 0) {
+                html += `<div class="section"><div class="section-title">Education</div>`;
+                d.education.forEach(edu => {
                     html += `
-                        <div class="entry-compact">
-                            <div class="entry-header-compact">
-                                <span class="entry-title-compact">${escapeHtml(edu.degree)}</span>
-                                <span class="entry-date-compact">${escapeHtml(edu.date)}</span>
+                        <div class="entry">
+                            <div class="entry-header">
+                                <span class="entry-title">${escapeHtml(edu.degree)}</span>
+                                <span class="entry-date">${escapeHtml(edu.date)}</span>
                             </div>
-                            <div class="entry-subtitle-compact">${escapeHtml(edu.school)}</div>
+                            <div class="entry-subtitle">${escapeHtml(edu.school)}</div>
                         </div>
                     `;
                 });
-                html += '</div>';
+                html += `</div>`;
             }
 
-            if (data.skills.length > 0) {
-                html += `
-                    <div class="section-compact">
-                        <div class="section-title-compact">Skills</div>
-                        <div class="skills-compact">
-                            ${data.skills.map(s => `<span class="skill-tag-compact">${escapeHtml(s)}</span>`).join('')}
-                        </div>
-                    </div>
-                `;
+            if (d.skills.length > 0) {
+                html += `<div class="section"><div class="section-title">Skills</div><div class="skills-list">${d.skills.map(s => `<span class="skill-tag">${escapeHtml(s)}</span>`).join('')}</div></div>`;
             }
 
-            preview.innerHTML = html;
+            el.innerHTML = html;
         }
 
-        function formatBullets(text) {
+        function formatDesc(text) {
             if (!text) return '';
-            // If already has bullets, keep them
-            if (text.includes('•') || text.includes('-')) {
-                return '<ul>' + text.split('\n').map(line => {
-                    const clean = line.replace(/^[•\-]\s*/, '');
-                    return `<li>${highlightKeywords(escapeHtml(clean))}</li>`;
-                }).join('') + '</ul>';
-            }
-            // Auto-convert sentences to bullets
-            const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
-            if (sentences.length > 1) {
-                return '<ul>' + sentences.map(s =>
-                    `<li>${highlightKeywords(escapeHtml(s.trim()))}</li>`
-                ).join('') + '</ul>';
-            }
+            if (text.includes('•')) return '<ul>' + text.split('•').filter(s=>s.trim()).map(s => `<li>${highlightKeywords(escapeHtml(s.trim()))}</li>`).join('') + '</ul>';
             return highlightKeywords(escapeHtml(text));
         }
 
         function highlightKeywords(text) {
-            const keywords = state.jdKeywords.length > 0 ? state.jdKeywords : (keywordDB[state.industry] || []);
-            let result = text;
-            keywords.forEach(k => {
-                const regex = new RegExp(`\\b${k}\\b`, 'gi');
-                result = result.replace(regex, match => `<span class="highlight-match">${match}</span>`);
+            const kw = keywords[state.industry] || keywords.general;
+            kw.forEach(k => {
+                text = text.replace(new RegExp(`\\b${k}\\b`, 'gi'), match => `<span class="highlight">${match}</span>`);
             });
-            return result;
+            return text;
         }
 
         function escapeHtml(text) {
             if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+            const d = document.createElement('div');
+            d.textContent = text;
+            return d.innerHTML;
         }
 
         function finishResume() {
             calculateScore();
-            addBotMessage(
-                `🎉 Resume Complete!\n\nATS Score: ${state.atsScore}/100\n` +
-                `${state.atsScore >= 80 ? '✅ Ready to apply!' : '💡 Tip: ' + getImprovementTip()}\n\n` +
-                `Download your optimized resume:`,
-                ['Download PDF', 'Download Word']
-            );
+            addBotMessage(`🎉 Resume Complete! ATS Score: ${state.atsScore}/100\n\nDownload your resume:`, [], ['Download PDF', 'Download Word']);
 
-            // Setup download handlers
-            const skillsStep = flow[flow.length - 1];
-            skillsStep.handler = (input) => {
-                if (input.includes('PDF')) downloadPDF();
-                else if (input.includes('Word')) downloadWord();
-                return false;
-            };
-        }
-
-        function getImprovementTip() {
-            if (state.data.experience.length === 0) return 'Add work experience';
-            if (!state.data.skills.length) return 'Add more skills';
-            if (state.atsScore < 60) return 'Add metrics to your experience (%, $, numbers)';
-            return 'Add more industry keywords';
+            // Override next input for downloads
+            steps.push({
+                id: 'download',
+                handler: (val) => {
+                    if (val.includes('PDF')) downloadPDF();
+                    else if (val.includes('Word')) downloadWord();
+                    return false;
+                }
+            });
         }
 
         function downloadPDF() {
-            const element = document.getElementById('resumePreview');
-            html2canvas(element, {scale: 2, useCORS: true}).then(canvas => {
-                const imgData = canvas.toDataURL('image/png');
+            const el = document.getElementById('resumePreview');
+            html2canvas(el, {scale: 2}).then(canvas => {
+                const img = canvas.toDataURL('image/png');
                 const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-                const imgWidth = 210;
-                const imgHeight = canvas.height * imgWidth / canvas.width;
-                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, Math.min(imgHeight, 297));
+                const w = 210;
+                const h = canvas.height * w / canvas.width;
+                pdf.addImage(img, 'PNG', 0, 0, w, Math.min(h, 297));
                 pdf.save(`${state.data.name.replace(/\s+/g, '_')}_Resume.pdf`);
-                addBotMessage('✅ PDF downloaded successfully!');
+                addBotMessage('✅ PDF downloaded!');
             });
         }
 
         function downloadWord() {
-            const data = state.data;
-            let content = `
-                <h1>${data.name}</h1>
-                <p>${data.email} | ${data.phone} | ${data.location}</p>
-                <h2>Professional Summary</h2>
-                <p>${data.summary}</p>
+            const d = state.data;
+            const content = `
+                <h1>${d.name}</h1>
+                <p>${d.email} | ${d.phone} | ${d.location}</p>
+                <h2>Summary</h2><p>${d.summary}</p>
                 <h2>Experience</h2>
+                ${d.experience.map(e => `<h3>${e.title}</h3><p>${e.company} | ${e.date}</p><p>${e.desc}</p>`).join('')}
+                <h2>Education</h2>
+                ${d.education.map(e => `<h3>${e.degree}</h3><p>${e.school}, ${e.date}</p>`).join('')}
             `;
-            data.experience.forEach(exp => {
-                content += `<h3>${exp.title}</h3><p>${exp.company} | ${exp.date}</p><p>${exp.description}</p>`;
-            });
-            const blob = new Blob(['\ufeff', content], {type: 'application/msword'});
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `${data.name.replace(/\s+/g, '_')}_Resume.doc`;
-            link.click();
+            const blob = new Blob(['\ufef', content], {type: 'application/msword'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${d.name.replace(/\s+/g, '_')}_Resume.doc`;
+            a.click();
             addBotMessage('✅ Word document downloaded!');
         }
-
-        // Auto-resize textarea
-        document.getElementById('userInput').addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-        });
     </script>
 </body>
 </html>
