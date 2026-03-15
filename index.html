@@ -3,24 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATS Resume Builder</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>ATS Resume Builder - Debug Version</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        :root {
-            --primary: #4f46e5;
-            --bg: #f8fafc;
-            --surface: #ffffff;
-            --text: #0f172a;
-            --border: #e2e8f0;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
+            background: #f0f0f0;
             height: 100vh;
             overflow: hidden;
         }
@@ -28,844 +16,585 @@
         /* Welcome Screen */
         #welcomeScreen {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
-            z-index: 1000;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 9999;
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-direction: column;
             color: white;
             text-align: center;
-            padding: 2rem;
         }
 
-        .welcome-card {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 24px;
-            padding: 3rem;
-            max-width: 600px;
+        .welcome-box {
+            background: rgba(255,255,255,0.2);
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 500px;
         }
 
-        .welcome-card h1 { font-size: 2.5rem; margin-bottom: 1rem; }
-        .welcome-card p { font-size: 1.1rem; opacity: 0.9; margin-bottom: 2rem; }
+        .welcome-box h1 { margin-bottom: 20px; font-size: 32px; }
+        .welcome-box p { margin-bottom: 30px; font-size: 18px; opacity: 0.9; }
 
-        .start-btn {
-            padding: 1rem 2.5rem;
+        #startBtn {
+            padding: 15px 40px;
             background: white;
-            color: var(--primary);
+            color: #667eea;
             border: none;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: 700;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: bold;
             cursor: pointer;
-            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
-        .start-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+        #startBtn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+        #startBtn:active { transform: translateY(0); }
 
-        /* Main App - Initially Hidden */
+        /* Main App - Hidden by default */
         #mainApp {
             display: none;
             height: 100vh;
+            width: 100%;
         }
 
-        #mainApp.active {
+        #mainApp.visible {
             display: flex;
         }
 
         .left-panel {
             width: 40%;
-            min-width: 400px;
-            background: var(--surface);
-            border-right: 1px solid var(--border);
+            background: white;
+            border-right: 1px solid #ddd;
             display: flex;
             flex-direction: column;
         }
 
-        .panel-header {
-            padding: 1.25rem;
-            background: linear-gradient(135deg, var(--primary) 0%, #3730a3 100%);
+        .header {
+            background: #667eea;
             color: white;
-        }
-
-        .header-top {
+            padding: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 0.75rem;
         }
 
-        .logo { font-weight: 700; font-size: 1.25rem; }
-
-        .back-btn {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1.2rem;
-        }
-
-        .back-btn:disabled { opacity: 0.3; }
-
-        .progress-bar {
-            display: flex;
-            gap: 4px;
-            margin-top: 0.5rem;
-        }
-
-        .progress-segment {
-            flex: 1;
-            height: 4px;
-            background: rgba(255,255,255,0.3);
-            border-radius: 2px;
-        }
-
-        .progress-segment.active { background: white; }
-        .progress-segment.completed { background: #34d399; }
-
-        .chat-messages {
+        .chat-area {
             flex: 1;
             overflow-y: auto;
-            padding: 1.5rem;
-            background: #f8fafc;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
+            padding: 20px;
+            background: #f8f9fa;
         }
 
         .message {
-            max-width: 90%;
-            animation: slideIn 0.3s ease;
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            max-width: 80%;
+            animation: fadeIn 0.3s;
         }
 
-        @keyframes slideIn {
+        @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .bot-message { align-self: flex-start; }
-        .user-message { align-self: flex-end; }
-
-        .message-bubble {
-            padding: 1rem 1.25rem;
-            border-radius: 16px;
-            font-size: 0.95rem;
-            line-height: 1.5;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .bot-message .message-bubble {
+        .bot-msg {
             background: white;
-            border: 1px solid var(--border);
-            border-bottom-left-radius: 4px;
+            border: 1px solid #e0e0e0;
+            align-self: flex-start;
         }
 
-        .user-message .message-bubble {
-            background: var(--primary);
+        .user-msg {
+            background: #667eea;
             color: white;
-            border-bottom-right-radius: 4px;
+            margin-left: auto;
         }
 
-        .suggestion-box {
-            margin-top: 0.75rem;
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
-            border-radius: 12px;
-            padding: 1rem;
-        }
-
-        .suggestion-title {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: #1e40af;
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-        }
-
-        .suggestion-chips {
+        .input-area {
+            padding: 15px;
+            border-top: 1px solid #ddd;
             display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
+            gap: 10px;
         }
 
-        .chip {
-            background: white;
-            border: 1px solid #93c5fd;
-            color: #1e40af;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            font-weight: 500;
-            border: none;
-            font-family: inherit;
-        }
-
-        .chip:hover {
-            background: var(--primary);
-            color: white;
-        }
-
-        .chip.full {
-            width: 100%;
-            text-align: left;
-            margin-bottom: 0.5rem;
-            padding: 0.75rem;
-            line-height: 1.4;
-        }
-
-        .input-container {
-            padding: 1rem;
-            background: white;
-            border-top: 1px solid var(--border);
-        }
-
-        .input-wrapper {
-            display: flex;
-            gap: 0.5rem;
-            background: #f8fafc;
-            padding: 0.5rem;
-            border-radius: 12px;
-            border: 2px solid var(--border);
-            align-items: flex-end;
-        }
-
-        .chat-input {
+        #msgInput {
             flex: 1;
-            border: none;
-            background: transparent;
-            padding: 0.5rem;
-            font-size: 0.95rem;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
             outline: none;
-            font-family: inherit;
-            resize: none;
-            min-height: 24px;
-            max-height: 120px;
         }
 
-        .send-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            background: var(--primary);
+        #msgInput:focus { border-color: #667eea; }
+
+        #sendBtn {
+            padding: 12px 24px;
+            background: #667eea;
             color: white;
             border: none;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 1.2rem;
+            font-size: 16px;
         }
 
         .right-panel {
             flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: #f1f5f9;
-        }
-
-        .ats-header {
-            background: white;
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
-
-        .score-circle {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: conic-gradient(var(--primary) calc(var(--score, 0) * 1%), #e2e8f0 0);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            font-weight: 700;
-        }
-
-        .score-circle::before {
-            content: '';
-            position: absolute;
-            width: 48px;
-            height: 48px;
-            background: white;
-            border-radius: 50%;
-        }
-
-        .score-value { position: relative; z-index: 1; }
-
-        .preview-wrapper {
-            flex: 1;
+            background: #e9ecef;
+            padding: 20px;
             overflow-y: auto;
-            padding: 2rem;
-            display: flex;
-            justify-content: center;
         }
 
-        .resume-a4 {
+        .resume-preview {
+            background: white;
             width: 210mm;
             min-height: 297mm;
-            background: white;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
-            padding: 15mm 20mm;
-            font-family: 'Calibri', 'Arial', sans-serif;
-            font-size: 10.5pt;
-            line-height: 1.3;
-        }
-
-        .resume-header {
-            border-bottom: 1.5pt solid #000;
-            padding-bottom: 8pt;
-            margin-bottom: 10pt;
-        }
-
-        .resume-name {
-            font-size: 16pt;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-bottom: 4pt;
-        }
-
-        .resume-contact {
-            font-size: 9.5pt;
-            display: flex;
-            gap: 12pt;
-            flex-wrap: wrap;
-        }
-
-        .section { margin-bottom: 10pt; }
-
-        .section-title {
+            margin: 0 auto;
+            padding: 20mm;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            font-family: 'Times New Roman', serif;
             font-size: 11pt;
-            font-weight: bold;
-            text-transform: uppercase;
-            border-bottom: 0.5pt solid #000;
-            margin-bottom: 6pt;
-            padding-bottom: 2pt;
-        }
-
-        .summary-text {
-            font-size: 10.5pt;
             line-height: 1.4;
         }
 
-        .entry { margin-bottom: 8pt; }
-
-        .entry-header {
-            display: flex;
-            justify-content: space-between;
+        .suggestion-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 14px;
         }
 
-        .entry-title { font-weight: bold; font-size: 10.5pt; }
-        .entry-date { font-size: 9.5pt; font-style: italic; }
-        .entry-subtitle { font-size: 10pt; font-style: italic; margin-bottom: 3pt; }
+        .suggestion-btn:hover { background: #bbdefb; }
 
-        .skills-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4pt;
-        }
-
-        .skill-tag {
-            background: #f3f4f6;
-            padding: 2pt 6pt;
-            border-radius: 3pt;
-            font-size: 9.5pt;
-            border: 0.5pt solid #e5e7eb;
+        .error-box {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #ff5252;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+            z-index: 10000;
+            max-width: 300px;
         }
     </style>
 </head>
 <body>
 
+    <!-- Error Display -->
+    <div id="errorBox" class="error-box"></div>
+
     <!-- Welcome Screen -->
     <div id="welcomeScreen">
-        <div class="welcome-card">
-            <div style="font-size: 4rem; margin-bottom: 1rem;">🎯</div>
-            <h1>ATS Resume Builder</h1>
-            <p>Create an optimized resume with smart suggestions and ATS scoring.</p>
-            <button class="start-btn" onclick="startBuilding()">Start Building</button>
+        <div class="welcome-box">
+            <h1>📝 Resume Builder</h1>
+            <p>Create an ATS-optimized resume with smart suggestions</p>
+            <button id="startBtn" onclick="startApp()">Start Building →</button>
+            <p style="margin-top: 20px; font-size: 14px; opacity: 0.8;">
+                If button doesn't work, check browser console (F12)
+            </p>
         </div>
     </div>
 
-    <!-- Main App -->
+    <!-- Main Application -->
     <div id="mainApp">
-        <!-- Left Panel -->
         <div class="left-panel">
-            <div class="panel-header">
-                <div class="header-top">
-                    <div class="logo">📝 ResumeAI</div>
-                    <button class="back-btn" id="backBtn" onclick="goBack()" disabled>←</button>
-                </div>
-                <div class="progress-bar" id="progressBar"></div>
+            <div class="header">
+                <h2>💬 Chat Assistant</h2>
+                <button onclick="goBack()" id="backButton" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer;">← Back</button>
             </div>
 
-            <div class="chat-messages" id="chatMessages"></div>
+            <div class="chat-area" id="chatBox">
+                <!-- Messages appear here -->
+            </div>
 
-            <div class="input-container">
-                <div class="input-wrapper">
-                    <textarea class="chat-input" id="userInput" placeholder="Type your response..." rows="1"></textarea>
-                    <button class="send-btn" onclick="sendMessage()">↑</button>
-                </div>
+            <div class="input-area">
+                <textarea id="msgInput" rows="1" placeholder="Type here..." style="resize: none; overflow: hidden;"></textarea>
+                <button id="sendBtn" onclick="sendMessage()">Send</button>
             </div>
         </div>
 
-        <!-- Right Panel -->
         <div class="right-panel">
-            <div class="ats-header">
-                <div class="score-circle" id="scoreCircle">
-                    <span class="score-value" id="scoreValue">0</span>
+            <div style="background: white; padding: 15px; margin-bottom: 20px; border-radius: 8px; display: flex; align-items: center; gap: 15px;">
+                <div style="width: 60px; height: 60px; background: conic-gradient(#4caf50 calc(var(--score, 0) * 1%), #e0e0e0 0); border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative;">
+                    <div style="position: absolute; width: 48px; height: 48px; background: white; border-radius: 50%;"></div>
+                    <span id="scoreDisplay" style="position: relative; z-index: 1; font-weight: bold;">0</span>
                 </div>
                 <div>
-                    <h3 style="font-size: 0.9rem; font-weight: 600;">ATS Score</h3>
-                    <p style="font-size: 0.8rem; color: #64748b;" id="scoreText">Start building</p>
+                    <h3 style="margin: 0;">ATS Score</h3>
+                    <p style="margin: 0; color: #666; font-size: 14px;">Complete your resume</p>
                 </div>
             </div>
 
-            <div class="preview-wrapper">
-                <div class="resume-a4" id="resumePreview">
-                    <div style="text-align: center; color: #94a3b8; padding-top: 100px;">
-                        <div style="font-size: 3rem; margin-bottom: 1rem;">📄</div>
-                        <div>Your resume will appear here</div>
-                    </div>
+            <div class="resume-preview" id="resumeView">
+                <div style="text-align: center; color: #999; padding-top: 100px;">
+                    Your resume will appear here
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // State
+        // Global variables
         let currentStep = 0;
-        let history = [];
         let resumeData = {
             name: '', title: '', email: '', phone: '', location: '',
             summary: '', experience: [], education: [], skills: []
         };
         let currentExp = null;
-        let industry = 'general';
 
-        // Summary templates by industry
-        const templates = {
-            software: [
-                "Results-driven Software Engineer with 5+ years of experience designing scalable applications and implementing efficient solutions. Proficient in React, Node.js, and cloud architecture with a proven track record of delivering high-quality code.",
-                "Innovative Full Stack Developer specializing in building responsive web applications and RESTful APIs. Experienced in Agile development environments and passionate about writing clean, maintainable code."
-            ],
-            marketing: [
-                "Results-driven Marketing Manager with 6+ years of experience developing data-driven campaigns that increased revenue by 40%. Expert in digital strategy, SEO/SEM, and brand management.",
-                "Creative Content Strategist specializing in brand storytelling and audience engagement. Proven track record of managing successful social media campaigns and improving conversion rates."
-            ],
-            sales: [
-                "Top-performing Sales Representative with consistent record of exceeding quota by 150%. Expert in B2B sales, relationship building, and consultative selling.",
-                "Strategic Account Manager with 5+ years of experience managing enterprise client portfolios and driving revenue growth."
-            ],
-            general: [
-                "Results-driven professional with 5+ years of experience delivering exceptional results in fast-paced environments. Proven track record of increasing efficiency and leading high-performing teams.",
-                "Detail-oriented specialist with strong analytical and problem-solving skills. Experienced in managing complex projects and collaborating with cross-functional teams."
-            ]
-        };
+        // Debug function
+        function showError(msg) {
+            console.error(msg);
+            const box = document.getElementById('errorBox');
+            box.textContent = msg;
+            box.style.display = 'block';
+            setTimeout(() => box.style.display = 'none', 5000);
+        }
 
-        const keywords = {
-            software: ['Python', 'JavaScript', 'React', 'Node.js', 'AWS', 'Docker', 'SQL', 'Git', 'Agile'],
-            marketing: ['SEO', 'SEM', 'Google Analytics', 'Content Strategy', 'Social Media', 'CRM'],
-            sales: ['B2B', 'CRM', 'Salesforce', 'Lead Generation', 'Negotiation', 'Account Management'],
-            general: ['Communication', 'Leadership', 'Project Management', 'Microsoft Office', 'Excel']
-        };
+        // Start function - called directly by button
+        function startApp() {
+            try {
+                console.log("Starting app...");
+
+                // Hide welcome
+                const welcome = document.getElementById('welcomeScreen');
+                const mainApp = document.getElementById('mainApp');
+
+                if (!welcome || !mainApp) {
+                    showError("Elements not found!");
+                    return;
+                }
+
+                welcome.style.display = 'none';
+                mainApp.classList.add('visible');
+
+                console.log("App started successfully");
+
+                // Initialize first step
+                showStep(0);
+
+                // Setup textarea auto-resize
+                const textarea = document.getElementById('msgInput');
+                textarea.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+                });
+
+            } catch (e) {
+                showError("Error: " + e.message);
+                console.error(e);
+            }
+        }
 
         // Step definitions
         const steps = [
             {
-                id: 'role',
-                text: "What job title are you targeting? (e.g., Software Engineer, Marketing Manager)",
-                suggestions: ['Software Engineer', 'Product Manager', 'Marketing Director', 'Sales Representative'],
-                onComplete: (val) => {
-                    resumeData.targetRole = val;
-                    detectIndustry(val);
-                }
+                question: "What job title are you targeting? (e.g., Software Engineer)",
+                suggestions: ["Software Engineer", "Marketing Manager", "Product Manager", "Sales Representative"],
+                field: "targetRole"
             },
             {
-                id: 'name',
-                text: "What's your full name?",
-                field: 'name'
+                question: "What's your full name?",
+                field: "name"
             },
             {
-                id: 'title',
-                text: "What title should appear on your resume?",
-                suggestions: ['Senior Software Engineer', 'Marketing Manager', 'Product Manager'],
-                field: 'title'
+                question: "Your email address?",
+                field: "email"
             },
             {
-                id: 'email',
-                text: "Your email address?",
-                field: 'email'
+                question: "Phone number?",
+                field: "phone"
             },
             {
-                id: 'phone',
-                text: "Phone number?",
-                field: 'phone'
+                question: "City and State?",
+                field: "location"
             },
             {
-                id: 'location',
-                text: "City and State?",
-                field: 'location'
-            },
-            {
-                id: 'summary',
-                text: "Write a professional summary (2-3 sentences). Click a template below or write your own:",
+                question: "Write a professional summary (2-3 sentences). Click a template below or type your own:",
                 isParagraph: true,
-                getSuggestions: () => templates[industry] || templates.general,
-                field: 'summary'
+                suggestions: [
+                    "Results-driven professional with 5+ years of experience delivering exceptional results in fast-paced environments.",
+                    "Detail-oriented specialist with strong analytical skills and proven track record of managing complex projects."
+                ],
+                field: "summary"
             },
             {
-                id: 'exp_title',
-                text: "Most recent job title?",
-                suggestions: ['Software Engineer', 'Senior Developer', 'Team Lead'],
-                onComplete: (val) => { currentExp = {title: val, company: '', date: '', desc: ''}; }
+                question: "Most recent job title?",
+                field: "exp_title",
+                onComplete: function(val) { currentExp = {title: val, company: "", date: "", desc: ""}; }
             },
             {
-                id: 'exp_company',
-                text: "Company name?",
-                onComplete: (val) => { currentExp.company = val; }
+                question: "Company name?",
+                onComplete: function(val) { currentExp.company = val; }
             },
             {
-                id: 'exp_date',
-                text: "Dates employed? (e.g., Jan 2020 - Present)",
-                onComplete: (val) => { currentExp.date = val; }
+                question: "Dates? (e.g., Jan 2020 - Present)",
+                onComplete: function(val) { currentExp.date = val; }
             },
             {
-                id: 'exp_desc',
-                text: "Describe your achievements. Use action verbs and numbers!",
+                question: "Job description - describe your achievements:",
                 isParagraph: true,
-                suggestions: ['Led team of 5 developers', 'Increased revenue by 25%', 'Implemented CI/CD pipeline'],
-                onComplete: (val) => {
+                suggestions: ["Led team of 5 developers to deliver project 2 weeks early", "Increased sales revenue by 30% through strategic initiatives"],
+                onComplete: function(val) {
                     currentExp.desc = val;
                     resumeData.experience.push({...currentExp});
                 }
             },
             {
-                id: 'exp_more',
-                text: "Add another position?",
-                options: ['Yes, add another', 'No, continue'],
-                handler: (val) => {
-                    if (val.includes('Yes')) {
-                        setTimeout(() => jumpToStep(7), 300);
+                question: "Add another job?",
+                options: ["Yes, add another", "No, continue to education"],
+                handler: function(val) {
+                    if (val.includes("Yes")) {
+                        currentStep = 5; // Go back to job title
+                        showStep(currentStep);
                         return false;
                     }
                     return true;
                 }
             },
             {
-                id: 'edu_degree',
-                text: "Highest degree? (e.g., BS Computer Science)",
-                onComplete: (val) => { resumeData.education.push({degree: val, school: '', date: ''}); }
+                question: "Highest degree? (e.g., BS Computer Science)",
+                field: "education",
+                onComplete: function(val) { resumeData.education.push({degree: val, school: "", date: ""}); }
             },
             {
-                id: 'edu_school',
-                text: "University/Institution?",
-                onComplete: (val) => { resumeData.education[resumeData.education.length-1].school = val; }
+                question: "University name?",
+                onComplete: function(val) { resumeData.education[resumeData.education.length-1].school = val; }
             },
             {
-                id: 'edu_date',
-                text: "Graduation year?",
-                onComplete: (val) => { resumeData.education[resumeData.education.length-1].date = val; }
+                question: "Graduation year?",
+                onComplete: function(val) { resumeData.education[resumeData.education.length-1].date = val; }
             },
             {
-                id: 'skills',
-                text: "List your skills (comma separated):",
-                suggestions: (() => (keywords[industry] || keywords.general).slice(0, 6))(),
-                field: 'skills'
+                question: "List your skills (comma separated):",
+                field: "skills",
+                suggestions: ["JavaScript, React, Node.js", "Project Management, Leadership", "SEO, Google Analytics, Content Strategy"]
             }
         ];
 
-        // Start the app
-        function startBuilding() {
-            console.log("Starting app...");
-            document.getElementById('welcomeScreen').style.display = 'none';
-            document.getElementById('mainApp').classList.add('active');
-            renderProgress();
-            showStep(0);
-
-            // Setup textarea
-            const textarea = document.getElementById('userInput');
-            textarea.addEventListener('input', function() {
-                this.style.height = 'auto';
-                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-            });
-
-            // Enter key support
-            textarea.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                }
-            });
-        }
-
-        function renderProgress() {
-            const bar = document.getElementById('progressBar');
-            bar.innerHTML = steps.map((_, i) =>
-                `<div class="progress-segment ${i===0?'active':''}" id="prog-${i}"></div>`
-            ).join('');
-        }
-
-        function updateProgress() {
-            steps.forEach((_, i) => {
-                const el = document.getElementById(`prog-${i}`);
-                if (!el) return;
-                el.className = 'progress-segment';
-                if (i < currentStep) el.classList.add('completed');
-                else if (i === currentStep) el.classList.add('active');
-            });
-            document.getElementById('backBtn').disabled = currentStep === 0;
-        }
-
         function showStep(index) {
-            if (index >= steps.length) {
-                finishResume();
-                return;
+            try {
+                if (index >= steps.length) {
+                    finishResume();
+                    return;
+                }
+
+                currentStep = index;
+                const step = steps[index];
+                const chatBox = document.getElementById('chatBox');
+
+                // Add bot message
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'message bot-msg';
+                msgDiv.innerHTML = step.question;
+                chatBox.appendChild(msgDiv);
+
+                // Add suggestions if any
+                if (step.suggestions) {
+                    const sugDiv = document.createElement('div');
+                    sugDiv.className = 'message bot-msg';
+                    sugDiv.style.background = '#e3f2fd';
+                    sugDiv.style.border = '1px solid #90caf9';
+
+                    let html = '<strong>Suggestions:</strong><br>';
+                    step.suggestions.forEach(s => {
+                        html += `<button class="suggestion-btn" onclick="useSuggestion('${s.replace(/'/g, "\\'")}')">${s}</button>`;
+                    });
+                    sugDiv.innerHTML = html;
+                    chatBox.appendChild(sugDiv);
+                }
+
+                if (step.options) {
+                    const optDiv = document.createElement('div');
+                    optDiv.className = 'message bot-msg';
+                    optDiv.style.background = '#f5f5f5';
+
+                    let html = '<strong>Choose:</strong><br>';
+                    step.options.forEach(o => {
+                        html += `<button class="suggestion-btn" onclick="useSuggestion('${o.replace(/'/g, "\\'")}')">${o}</button>`;
+                    });
+                    optDiv.innerHTML = html;
+                    chatBox.appendChild(optDiv);
+                }
+
+                chatBox.scrollTop = chatBox.scrollHeight;
+
+                // Update input placeholder
+                document.getElementById('msgInput').placeholder = step.isParagraph ? "Type your response (multiple lines allowed)..." : "Type here...";
+
+            } catch (e) {
+                showError("Show step error: " + e.message);
             }
-
-            currentStep = index;
-            const step = steps[index];
-
-            let suggestions = step.suggestions || [];
-            if (step.getSuggestions) suggestions = step.getSuggestions();
-
-            displayMessage(step.text, suggestions, step.options, step.isParagraph);
-            updateProgress();
         }
 
-        function displayMessage(text, suggestions, options, isParagraph) {
-            const container = document.getElementById('chatMessages');
-
-            const div = document.createElement('div');
-            div.className = 'message bot-message';
-
-            let html = `<div class="message-bubble">${text}</div>`;
-
-            if (suggestions && suggestions.length > 0) {
-                html += `<div class="suggestion-box">
-                    <div class="suggestion-title">💡 ${isParagraph ? 'Click to use template:' : 'Suggestions'}</div>
-                    <div class="suggestion-chips">`;
-
-                suggestions.forEach(s => {
-                    const safeText = s.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                    html += `<button class="chip ${isParagraph ? 'full' : ''}" onclick="insertText('${safeText}')">${s}</button>`;
-                });
-
-                html += `</div></div>`;
-            }
-
-            if (options && options.length > 0) {
-                html += `<div class="suggestion-box" style="background:white; border-color:var(--border);">
-                    <div class="suggestion-title" style="color:var(--text-secondary);">Options</div>
-                    <div class="suggestion-chips">`;
-                options.forEach(o => {
-                    const safeText = o.replace(/'/g, "\\'");
-                    html += `<button class="chip" style="background:#f3f4f6; border-color:#d1d5db; color:#374151;" onclick="insertText('${safeText}')">${o}</button>`;
-                });
-                html += `</div></div>`;
-            }
-
-            div.innerHTML = html;
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function insertText(text) {
-            const textarea = document.getElementById('userInput');
-            textarea.value = text;
-            textarea.style.height = 'auto';
-            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
-            textarea.focus();
+        function useSuggestion(text) {
+            document.getElementById('msgInput').value = text;
+            sendMessage();
         }
 
         function sendMessage() {
-            const textarea = document.getElementById('userInput');
-            const text = textarea.value.trim();
-            if (!text) return;
+            try {
+                const input = document.getElementById('msgInput');
+                const text = input.value.trim();
+                if (!text) return;
 
-            // Add user message
-            const container = document.getElementById('chatMessages');
-            const div = document.createElement('div');
-            div.className = 'message user-message';
-            div.innerHTML = `<div class="message-bubble">${escapeHtml(text).replace(/\n/g, '<br>')}</div>`;
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
+                // Add user message
+                const chatBox = document.getElementById('chatBox');
+                const userDiv = document.createElement('div');
+                userDiv.className = 'message user-msg';
+                userDiv.innerHTML = text.replace(/\n/g, '<br>');
+                chatBox.appendChild(userDiv);
+                chatBox.scrollTop = chatBox.scrollHeight;
 
-            // Clear input
-            textarea.value = '';
-            textarea.style.height = 'auto';
+                input.value = '';
+                input.style.height = 'auto';
 
-            // Process step
-            const step = steps[currentStep];
+                // Process step
+                const step = steps[currentStep];
 
-            // Store data
-            if (step.field) {
-                if (step.field === 'skills') {
-                    resumeData.skills = text.split(',').map(s => s.trim()).filter(s => s);
-                } else {
-                    resumeData[step.field] = text;
+                if (step.field && step.field !== "exp_title" && step.field !== "education") {
+                    if (step.field === "skills") {
+                        resumeData.skills = text.split(',').map(s => s.trim()).filter(s => s);
+                    } else {
+                        resumeData[step.field] = text;
+                    }
                 }
-            }
-            if (step.onComplete) step.onComplete(text);
 
-            // Custom handler
-            let shouldAdvance = true;
-            if (step.handler) {
-                shouldAdvance = step.handler(text);
-            }
+                if (step.onComplete) step.onComplete(text);
 
-            if (shouldAdvance) {
-                history.push(currentStep);
-                setTimeout(() => showStep(currentStep + 1), 500);
-            }
+                let shouldAdvance = true;
+                if (step.handler) shouldAdvance = step.handler(text);
 
-            updatePreview();
-            updateScore();
+                if (shouldAdvance) {
+                    setTimeout(() => showStep(currentStep + 1), 500);
+                }
+
+                updatePreview();
+                updateScore();
+
+            } catch (e) {
+                showError("Send error: " + e.message);
+            }
         }
 
         function goBack() {
-            if (history.length > 0) {
-                const prev = history.pop();
-                showStep(prev);
+            if (currentStep > 0) {
+                currentStep--;
+                showStep(currentStep);
             }
         }
 
-        function jumpToStep(index) {
-            history.push(currentStep);
-            showStep(index);
-        }
+        function updatePreview() {
+            try {
+                const d = resumeData;
+                const view = document.getElementById('resumeView');
 
-        function detectIndustry(role) {
-            const r = role.toLowerCase();
-            if (r.includes('software') || r.includes('developer') || r.includes('engineer')) industry = 'software';
-            else if (r.includes('marketing')) industry = 'marketing';
-            else if (r.includes('sales')) industry = 'sales';
-            else industry = 'general';
+                if (!d.name) {
+                    view.innerHTML = '<div style="text-align: center; color: #999; padding-top: 100px;">Your resume will appear here</div>';
+                    return;
+                }
+
+                let html = `
+                    <div style="border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px;">
+                        <h1 style="font-size: 24px; margin: 0; text-transform: uppercase;">${d.name}</h1>
+                        <p style="margin: 5px 0 0 0; font-size: 14px;">
+                            ${d.email || ''} ${d.phone ? '• ' + d.phone : ''} ${d.location ? '• ' + d.location : ''}
+                        </p>
+                    </div>
+                `;
+
+                if (d.summary) {
+                    html += `<div style="margin-bottom: 15px;">
+                        <h3 style="border-bottom: 1px solid #000; font-size: 14px; text-transform: uppercase; margin-bottom: 8px;">Professional Summary</h3>
+                        <p style="font-size: 13px; line-height: 1.4;">${d.summary.replace(/\n/g, '<br>')}</p>
+                    </div>`;
+                }
+
+                if (d.experience.length > 0) {
+                    html += `<div style="margin-bottom: 15px;">
+                        <h3 style="border-bottom: 1px solid #000; font-size: 14px; text-transform: uppercase; margin-bottom: 8px;">Experience</h3>`;
+                    d.experience.forEach(exp => {
+                        html += `<div style="margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 13px;">
+                                <span>${exp.title}</span>
+                                <span style="font-weight: normal; font-style: italic;">${exp.date}</span>
+                            </div>
+                            <div style="font-style: italic; font-size: 12px; color: #555;">${exp.company}</div>
+                            <p style="font-size: 12px; margin: 3px 0 0 0;">${exp.desc ? exp.desc.replace(/\n/g, '<br>') : ''}</p>
+                        </div>`;
+                    });
+                    html += `</div>`;
+                }
+
+                if (d.education.length > 0) {
+                    html += `<div style="margin-bottom: 15px;">
+                        <h3 style="border-bottom: 1px solid #000; font-size: 14px; text-transform: uppercase; margin-bottom: 8px;">Education</h3>`;
+                    d.education.forEach(edu => {
+                        html += `<div style="margin-bottom: 8px;">
+                            <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 13px;">
+                                <span>${edu.degree}</span>
+                                <span style="font-weight: normal; font-style: italic;">${edu.date}</span>
+                            </div>
+                            <div style="font-style: italic; font-size: 12px; color: #555;">${edu.school}</div>
+                        </div>`;
+                    });
+                    html += `</div>`;
+                }
+
+                if (d.skills.length > 0) {
+                    html += `<div>
+                        <h3 style="border-bottom: 1px solid #000; font-size: 14px; text-transform: uppercase; margin-bottom: 8px;">Skills</h3>
+                        <p style="font-size: 12px;">${d.skills.join(' • ')}</p>
+                    </div>`;
+                }
+
+                view.innerHTML = html;
+
+            } catch (e) {
+                showError("Preview error: " + e.message);
+            }
         }
 
         function updateScore() {
             let score = 0;
-            if (resumeData.name) score += 10;
-            if (resumeData.title) score += 10;
-            if (resumeData.email) score += 10;
+            if (resumeData.name) score += 15;
+            if (resumeData.email && resumeData.phone) score += 15;
             if (resumeData.summary) score += 20;
             if (resumeData.experience.length > 0) score += 30;
             if (resumeData.education.length > 0) score += 10;
             if (resumeData.skills.length > 0) score += 10;
 
-            document.getElementById('scoreValue').textContent = score;
-            document.getElementById('scoreCircle').style.setProperty('--score', score);
-
-            const text = score < 50 ? 'Needs work' : score < 80 ? 'Good progress' : 'ATS Ready!';
-            document.getElementById('scoreText').textContent = text;
-        }
-
-        function updatePreview() {
-            const d = resumeData;
-            const el = document.getElementById('resumePreview');
-
-            if (!d.name) return;
-
-            let html = `
-                <div class="resume-header">
-                    <div class="resume-name">${escapeHtml(d.name)}</div>
-                    <div class="resume-contact">
-                        ${d.email ? escapeHtml(d.email) : ''}
-                        ${d.phone ? ' • ' + escapeHtml(d.phone) : ''}
-                        ${d.location ? ' • ' + escapeHtml(d.location) : ''}
-                    </div>
-                </div>
-            `;
-
-            if (d.summary) {
-                html += `<div class="section"><div class="section-title">Professional Summary</div><div class="summary-text">${escapeHtml(d.summary).replace(/\n/g, '<br>')}</div></div>`;
-            }
-
-            if (d.experience.length > 0) {
-                html += `<div class="section"><div class="section-title">Experience</div>`;
-                d.experience.forEach(exp => {
-                    html += `
-                        <div class="entry">
-                            <div class="entry-header">
-                                <span class="entry-title">${escapeHtml(exp.title)}</span>
-                                <span class="entry-date">${escapeHtml(exp.date)}</span>
-                            </div>
-                            <div class="entry-subtitle">${escapeHtml(exp.company)}</div>
-                            <div style="font-size: 10pt;">${escapeHtml(exp.desc).replace(/\n/g, '<br>')}</div>
-                        </div>
-                    `;
-                });
-                html += `</div>`;
-            }
-
-            if (d.education.length > 0) {
-                html += `<div class="section"><div class="section-title">Education</div>`;
-                d.education.forEach(edu => {
-                    html += `
-                        <div class="entry">
-                            <div class="entry-header">
-                                <span class="entry-title">${escapeHtml(edu.degree)}</span>
-                                <span class="entry-date">${escapeHtml(edu.date)}</span>
-                            </div>
-                            <div class="entry-subtitle">${escapeHtml(edu.school)}</div>
-                        </div>
-                    `;
-                });
-                html += `</div>`;
-            }
-
-            if (d.skills.length > 0) {
-                html += `<div class="section"><div class="section-title">Skills</div><div class="skills-list">${d.skills.map(s => `<span class="skill-tag">${escapeHtml(s)}</span>`).join('')}</div></div>`;
-            }
-
-            el.innerHTML = html;
-        }
-
-        function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+            document.getElementById('scoreDisplay').textContent = score;
+            document.documentElement.style.setProperty('--score', score);
         }
 
         function finishResume() {
-            displayMessage(`🎉 Resume Complete! ATS Score: ${document.getElementById('scoreValue').textContent}/100\n\nDownload your resume:`, [], ['Download PDF', 'Download Word']);
-
-            // Add download handler
-            steps.push({
-                handler: (val) => {
-                    if (val.includes('PDF')) downloadPDF();
-                    else if (val.includes('Word')) downloadWord();
-                    return false;
-                }
-            });
+            const chatBox = document.getElementById('chatBox');
+            const div = document.createElement('div');
+            div.className = 'message bot-msg';
+            div.innerHTML = `<strong>🎉 Resume Complete!</strong><br>Your ATS Score: ${document.getElementById('scoreDisplay').textContent}/100<br><br><button class="suggestion-btn" onclick="alert('PDF Download would start here')">Download PDF</button>`;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        function downloadPDF() {
-            const el = document.getElementById('resumePreview');
-            html2canvas(el, {scale: 2}).then(canvas => {
-                const img = canvas.toDataURL('image/png');
-                const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-                pdf.addImage(img, 'PNG', 0, 0, 210, 297);
-                pdf.save(`${resumeData.name.replace(/\s+/g, '_')}_Resume.pdf`);
-                alert('PDF downloaded!');
-            });
-        }
-
-        function downloadWord() {
-            const d = resumeData;
-            const content = `<h1>${d.name}</h1><p>${d.email} | ${d.phone}</p><h2>Summary</h2><p>${d.summary}</p>`;
-            const blob = new Blob(['\ufef', content], {type: 'application/msword'});
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `${d.name.replace(/\s+/g, '_')}_Resume.doc`;
-            a.click();
-            alert('Word document downloaded!');
-        }
+        // Safety check on load
+        window.onload = function() {
+            console.log("Page loaded successfully");
+            console.log("Start button exists:", !!document.getElementById('startBtn'));
+        };
     </script>
 </body>
 </html>
