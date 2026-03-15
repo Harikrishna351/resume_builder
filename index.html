@@ -36,13 +36,11 @@
             overflow: hidden;
         }
 
-        /* Layout */
         .app-container {
             display: flex;
             height: 100vh;
         }
 
-        /* Chat Section */
         .chat-section {
             width: 45%;
             min-width: 400px;
@@ -89,7 +87,6 @@
             50% { opacity: 0.5; }
         }
 
-        /* Chat Messages Area */
         .chat-messages {
             flex: 1;
             overflow-y: auto;
@@ -157,7 +154,6 @@
             text-align: right;
         }
 
-        /* Typing Indicator */
         .typing-indicator {
             display: none;
             align-self: flex-start;
@@ -191,7 +187,6 @@
             30% { transform: translateY(-4px); }
         }
 
-        /* Quick Replies */
         .quick-replies {
             display: flex;
             flex-wrap: wrap;
@@ -217,7 +212,6 @@
             transform: translateY(-1px);
         }
 
-        /* Chat Input */
         .chat-input-container {
             padding: 1.5rem;
             background: white;
@@ -273,7 +267,6 @@
             transform: none;
         }
 
-        /* Preview Section */
         .preview-section {
             flex: 1;
             background: #e2e8f0;
@@ -294,7 +287,6 @@
             transition: all 0.3s;
         }
 
-        /* Welcome Screen */
         .welcome-screen {
             position: fixed;
             top: 0;
@@ -371,7 +363,6 @@
             opacity: 0.8;
         }
 
-        /* Resume Styles */
         .resume-header {
             border-bottom: 2px solid #1e293b;
             padding-bottom: 1.5rem;
@@ -461,7 +452,6 @@
             font-size: 0.9rem;
         }
 
-        /* Download Bar */
         .download-bar {
             position: fixed;
             bottom: 0;
@@ -519,31 +509,10 @@
             background: var(--bg);
         }
 
-        /* Suggestion Chips in Chat */
-        .suggestion-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-top: 0.75rem;
+        .hidden {
+            display: none !important;
         }
 
-        .chip {
-            background: #f0fdf4;
-            border: 1px solid #86efac;
-            color: #166534;
-            padding: 0.5rem 1rem;
-            border-radius: 16px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .chip:hover {
-            background: #166534;
-            color: white;
-        }
-
-        /* Responsive */
         @media (max-width: 1024px) {
             .app-container {
                 flex-direction: column;
@@ -568,11 +537,6 @@
                 width: 100%;
             }
         }
-
-        /* Hidden initially */
-        .hidden {
-            display: none !important;
-        }
     </style>
 </head>
 <body>
@@ -583,7 +547,7 @@
             <div class="welcome-icon">💬</div>
             <h1>Meet Your AI Resume Assistant</h1>
             <p>I'll guide you through building a professional resume with personalized suggestions. Just chat with me naturally—I'll ask the right questions and craft your resume as we go!</p>
-            <button class="start-btn" onclick="startChat()">
+            <button class="start-btn" id="startBtn">
                 Start Conversation →
             </button>
             <div class="features">
@@ -610,9 +574,6 @@
             </div>
 
             <div class="chat-messages" id="chatMessages">
-                <!-- Messages will be added here -->
-
-                <!-- Typing indicator -->
                 <div class="typing-indicator" id="typingIndicator">
                     <div class="typing-dot"></div>
                     <div class="typing-dot"></div>
@@ -627,9 +588,8 @@
                         class="chat-input"
                         id="userInput"
                         placeholder="Type your message..."
-                        onkeypress="handleKeyPress(event)"
                     >
-                    <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+                    <button class="send-btn" id="sendBtn">
                         ↑
                     </button>
                 </div>
@@ -653,10 +613,10 @@
                 ✅ Your resume is ready!
             </div>
             <div class="download-actions">
-                <button class="btn btn-secondary" onclick="downloadWord()">
+                <button class="btn btn-secondary" id="downloadWordBtn">
                     💾 Word
                 </button>
-                <button class="btn btn-primary" onclick="downloadPDF()">
+                <button class="btn btn-primary" id="downloadPdfBtn">
                     📄 Download PDF
                 </button>
             </div>
@@ -664,8 +624,8 @@
     </div>
 
     <script>
-        // Conversation State
-        let conversationState = {
+        // State Management
+        const state = {
             step: 0,
             data: {
                 name: '',
@@ -679,204 +639,219 @@
                 skills: []
             },
             currentExperience: null,
-            currentEducation: null
+            currentEducation: null,
+            awaitingChoice: null // For handling temporary states like suggestions
         };
 
-        // Conversation Flow
-        const conversationFlow = [
+        // Conversation Flow - Fixed with proper messages for all steps
+        const flow = [
             {
                 id: 'welcome',
                 message: "Hi there! I'm your AI Resume Assistant. I'll help you create a professional resume by asking you a few questions. Ready to start?",
                 quickReplies: ["Yes, let's go!", "Ready"],
-                handler: (input) => {
-                    addBotMessage("Great! Let's start with the basics.");
-                    setTimeout(() => askQuestion('name'), 1000);
-                }
+                next: 'name'
             },
             {
                 id: 'name',
                 message: "What's your full name? (This will appear at the top of your resume)",
+                quickReplies: [],
+                next: 'title',
                 handler: (input) => {
-                    conversationState.data.name = input;
+                    state.data.name = input;
                     updatePreview();
-                    addBotMessage(`Nice to meet you, ${input}!`);
-                    setTimeout(() => askQuestion('title'), 1500);
+                    return true; // Proceed to next
                 }
             },
             {
                 id: 'title',
                 message: "What job title are you targeting? (e.g., Senior Marketing Manager, Software Engineer)",
+                quickReplies: [],
+                next: 'contact',
                 handler: (input) => {
-                    conversationState.data.title = input;
+                    state.data.title = input;
                     updatePreview();
-                    setTimeout(() => askQuestion('contact'), 1000);
+                    return true;
                 }
             },
             {
                 id: 'contact',
                 message: "What's your email address?",
+                quickReplies: [],
+                next: 'phone',
                 handler: (input) => {
-                    conversationState.data.email = input;
-                    addBotMessage("Got it! And your phone number?");
-                    conversationState.step++;
+                    state.data.email = input;
+                    return true;
                 }
             },
             {
                 id: 'phone',
-                message: "",
+                message: "What's your phone number?",
+                quickReplies: [],
+                next: 'location',
                 handler: (input) => {
-                    conversationState.data.phone = input;
-                    addBotMessage("Perfect! What city/state are you located in?");
-                    conversationState.step++;
+                    state.data.phone = input;
+                    return true;
                 }
             },
             {
                 id: 'location',
-                message: "",
+                message: "What city/state are you located in?",
+                quickReplies: [],
+                next: 'summary',
                 handler: (input) => {
-                    conversationState.data.location = input;
+                    state.data.location = input;
                     updatePreview();
-                    setTimeout(() => askQuestion('summary'), 1000);
+                    return true;
                 }
             },
             {
                 id: 'summary',
                 message: "Now let's write your professional summary. In 2-3 sentences, tell me about your background and what you're looking for. Or I can suggest one based on your title!",
                 quickReplies: ["Suggest one for me", "I'll write my own"],
+                next: 'experience',
                 handler: (input) => {
                     if (input.toLowerCase().includes('suggest')) {
                         suggestSummary();
+                        return false; // Don't proceed yet
                     } else {
-                        conversationState.data.summary = input;
+                        state.data.summary = input;
                         updatePreview();
-                        setTimeout(() => askQuestion('experience'), 1000);
+                        return true;
                     }
                 }
             },
             {
                 id: 'experience',
                 message: "Let's add your work experience. Tell me about your most recent job. What's your job title?",
+                quickReplies: [],
+                next: 'exp_company',
                 handler: (input) => {
-                    conversationState.currentExperience = {
+                    state.currentExperience = {
                         title: input,
                         company: '',
                         date: '',
                         description: ''
                     };
-                    addBotMessage("Great! What company did you work at?");
-                    conversationState.step++;
+                    return true;
                 }
             },
             {
                 id: 'exp_company',
-                message: "",
+                message: "What company did you work at?",
+                quickReplies: [],
+                next: 'exp_date',
                 handler: (input) => {
-                    conversationState.currentExperience.company = input;
-                    addBotMessage("What were the dates? (e.g., Jan 2020 - Present or 2019-2021)");
-                    conversationState.step++;
+                    state.currentExperience.company = input;
+                    return true;
                 }
             },
             {
                 id: 'exp_date',
-                message: "",
+                message: "What were the dates? (e.g., Jan 2020 - Present or 2019-2021)",
+                quickReplies: [],
+                next: 'exp_desc',
                 handler: (input) => {
-                    conversationState.currentExperience.date = input;
-                    addBotMessage("Now describe what you did there. Focus on achievements with numbers if possible! Or I can suggest bullet points.");
-                    addQuickReplies(["Suggest bullet points"]);
-                    conversationState.step++;
+                    state.currentExperience.date = input;
+                    return true;
                 }
             },
             {
                 id: 'exp_desc',
-                message: "",
+                message: "Now describe what you did there. Focus on achievements with numbers if possible! Or type 'suggest' for bullet points.",
+                quickReplies: ["Suggest bullet points"],
+                next: 'exp_more',
                 handler: (input) => {
                     if (input.toLowerCase().includes('suggest')) {
                         suggestBullets();
+                        return false;
                     } else {
-                        conversationState.currentExperience.description = input;
-                        conversationState.data.experience.push(conversationState.currentExperience);
+                        state.currentExperience.description = input;
+                        state.data.experience.push({...state.currentExperience});
                         updatePreview();
-                        addBotMessage("Experience added! Do you want to add another position?", [
-                            "Yes, add another",
-                            "No, continue to education"
-                        ]);
-                        conversationState.step++;
+                        return true;
                     }
                 }
             },
             {
                 id: 'exp_more',
-                message: "",
+                message: "Experience added! Do you want to add another position?",
+                quickReplies: ["Yes, add another", "No, continue to education"],
+                next: 'education',
                 handler: (input) => {
                     if (input.toLowerCase().includes('yes') || input.toLowerCase().includes('another')) {
-                        conversationState.step = 7; // Back to experience title
-                        askQuestion('experience');
+                        // Go back to experience step
+                        setTimeout(() => goToStep('experience'), 500);
+                        return false; // Don't increment, we manually navigated
                     } else {
-                        setTimeout(() => askQuestion('education'), 1000);
+                        return true;
                     }
                 }
             },
             {
                 id: 'education',
                 message: "Let's add your education. What's your highest degree? (e.g., Bachelor of Science in Computer Science)",
+                quickReplies: [],
+                next: 'edu_school',
                 handler: (input) => {
-                    conversationState.currentEducation = {
+                    state.currentEducation = {
                         degree: input,
                         school: '',
                         date: ''
                     };
-                    addBotMessage("Which university or school?");
-                    conversationState.step++;
+                    return true;
                 }
             },
             {
                 id: 'edu_school',
-                message: "",
+                message: "Which university or school?",
+                quickReplies: [],
+                next: 'edu_date',
                 handler: (input) => {
-                    conversationState.currentEducation.school = input;
-                    addBotMessage("What year did you graduate?");
-                    conversationState.step++;
+                    state.currentEducation.school = input;
+                    return true;
                 }
             },
             {
                 id: 'edu_date',
-                message: "",
+                message: "What year did you graduate?",
+                quickReplies: [],
+                next: 'edu_more',
                 handler: (input) => {
-                    conversationState.currentEducation.date = input;
-                    conversationState.data.education.push(conversationState.currentEducation);
+                    state.currentEducation.date = input;
+                    state.data.education.push({...state.currentEducation});
                     updatePreview();
-                    addBotMessage("Education added! Do you want to add another degree?", [
-                        "Yes, add another",
-                        "No, continue to skills"
-                    ]);
-                    conversationState.step++;
+                    return true;
                 }
             },
             {
                 id: 'edu_more',
-                message: "",
+                message: "Education added! Do you want to add another degree?",
+                quickReplies: ["Yes, add another", "No, continue to skills"],
+                next: 'skills',
                 handler: (input) => {
                     if (input.toLowerCase().includes('yes') || input.toLowerCase().includes('another')) {
-                        conversationState.step = 13; // Back to education
-                        askQuestion('education');
+                        setTimeout(() => goToStep('education'), 500);
+                        return false;
                     } else {
-                        setTimeout(() => askQuestion('skills'), 1000);
+                        return true;
                     }
                 }
             },
             {
                 id: 'skills',
                 message: "Finally, let's add your skills. List them separated by commas (e.g., Project Management, Python, Data Analysis, Leadership)",
+                quickReplies: [],
+                next: 'finish',
                 handler: (input) => {
-                    conversationState.data.skills = input.split(',').map(s => s.trim());
+                    state.data.skills = input.split(',').map(s => s.trim()).filter(s => s);
                     updatePreview();
-                    finishResume();
+                    return true;
                 }
             }
         ];
 
-        // AI Suggestions
-        const aiSuggestions = {
+        // AI Suggestions Database
+        const suggestions = {
             summaries: {
                 software: "Innovative Software Engineer with 5+ years of experience designing scalable applications. Proficient in React, Node.js, and cloud architecture with a passion for clean code and user experience.",
                 marketing: "Results-driven Marketing Manager with 6+ years of experience developing data-driven campaigns that increased revenue by 45%. Expert in digital strategy, SEO/SEM, and brand management.",
@@ -893,26 +868,67 @@
             ]
         };
 
-        function startChat() {
-            document.getElementById('welcomeScreen').style.display = 'none';
-            document.getElementById('mainApp').classList.remove('hidden');
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Resume Builder Loaded');
 
-            // Initial bot message
-            setTimeout(() => {
-                addBotMessage(conversationFlow[0].message, conversationFlow[0].quickReplies);
-                conversationState.step = 0;
-            }, 500);
+            // Event Listeners
+            document.getElementById('startBtn').addEventListener('click', startChat);
+            document.getElementById('sendBtn').addEventListener('click', sendMessage);
+            document.getElementById('userInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+            document.getElementById('downloadPdfBtn').addEventListener('click', downloadPDF);
+            document.getElementById('downloadWordBtn').addEventListener('click', downloadWord);
+        });
+
+        function startChat() {
+            console.log('Starting chat...');
+
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            const mainApp = document.getElementById('mainApp');
+
+            if (!welcomeScreen || !mainApp) {
+                console.error('Critical elements missing!');
+                alert('Error: Page elements not found. Please refresh.');
+                return;
+            }
+
+            // Hide welcome, show app
+            welcomeScreen.style.display = 'none';
+            mainApp.classList.remove('hidden');
+
+            // Start conversation
+            state.step = 0;
+            showCurrentStep();
+        }
+
+        function showCurrentStep() {
+            const current = flow[state.step];
+            if (current) {
+                addBotMessage(current.message, current.quickReplies);
+            }
+        }
+
+        function goToStep(stepId) {
+            const index = flow.findIndex(s => s.id === stepId);
+            if (index !== -1) {
+                state.step = index;
+                showCurrentStep();
+            }
         }
 
         function addBotMessage(text, quickReplies = []) {
             const messagesContainer = document.getElementById('chatMessages');
             const typingIndicator = document.getElementById('typingIndicator');
 
-            // Show typing indicator
+            if (!messagesContainer || !typingIndicator) return;
+
+            // Show typing
             typingIndicator.classList.add('active');
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-            // Delay message slightly for realism
+            // Delay for realism
             setTimeout(() => {
                 typingIndicator.classList.remove('active');
 
@@ -924,7 +940,7 @@
                 if (quickReplies.length > 0) {
                     html += '<div class="quick-replies">';
                     quickReplies.forEach(reply => {
-                        html += `<button class="quick-reply" onclick="useQuickReply('${reply}')">${reply}</button>`;
+                        html += `<button class="quick-reply" onclick="useQuickReply('${reply.replace(/'/g, "\\'")}')">${reply}</button>`;
                     });
                     html += '</div>';
                 }
@@ -932,140 +948,173 @@
                 messageDiv.innerHTML = html;
                 messagesContainer.insertBefore(messageDiv, typingIndicator);
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }, 800);
+            }, 600);
         }
 
         function addUserMessage(text) {
             const messagesContainer = document.getElementById('chatMessages');
+            if (!messagesContainer) return;
+
             const messageDiv = document.createElement('div');
             messageDiv.className = 'message user-message';
             messageDiv.innerHTML = `
-                <div class="message-bubble">${text}</div>
+                <div class="message-bubble">${escapeHtml(text)}</div>
                 <div class="message-time">Just now</div>
             `;
-            messagesContainer.insertBefore(messageDiv, document.getElementById('typingIndicator'));
+
+            const typingIndicator = document.getElementById('typingIndicator');
+            messagesContainer.insertBefore(messageDiv, typingIndicator);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        function addQuickReplies(replies) {
-            const messagesContainer = document.getElementById('chatMessages');
-            const lastMessage = messagesContainer.lastElementChild;
-
-            if (lastMessage && lastMessage.classList.contains('bot-message')) {
-                let html = '<div class="quick-replies">';
-                replies.forEach(reply => {
-                    html += `<button class="quick-reply" onclick="useQuickReply('${reply}')">${reply}</button>`;
-                });
-                html += '</div>';
-
-                const repliesDiv = document.createElement('div');
-                repliesDiv.innerHTML = html;
-                lastMessage.appendChild(repliesDiv);
-            }
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         function useQuickReply(text) {
-            document.getElementById('userInput').value = text;
-            sendMessage();
+            const input = document.getElementById('userInput');
+            if (input) {
+                input.value = text;
+                sendMessage();
+            }
         }
 
         function sendMessage() {
             const input = document.getElementById('userInput');
-            const text = input.value.trim();
+            if (!input) return;
 
+            const text = input.value.trim();
             if (!text) return;
 
             addUserMessage(text);
             input.value = '';
 
-            // Process the message based on current step
+            // Process message
             processMessage(text);
         }
 
-        function handleKeyPress(event) {
-            if (event.key === 'Enter') {
-                sendMessage();
-            }
-        }
-
         function processMessage(input) {
-            const currentFlow = conversationFlow[conversationState.step];
-            if (currentFlow && currentFlow.handler) {
-                currentFlow.handler(input);
-            }
-        }
+            const current = flow[state.step];
+            if (!current) return;
 
-        function askQuestion(stepId) {
-            const step = conversationFlow.find(s => s.id === stepId);
-            if (step) {
-                conversationState.step = conversationFlow.indexOf(step);
-                addBotMessage(step.message, step.quickReplies);
+            // Check if we have a special handler
+            if (current.handler) {
+                const shouldProceed = current.handler(input);
+                if (shouldProceed === false) {
+                    // Handler wants to stay on current step or manually navigate
+                    return;
+                }
+            }
+
+            // Move to next step
+            if (current.next) {
+                const nextIndex = flow.findIndex(s => s.id === current.next);
+                if (nextIndex !== -1) {
+                    state.step = nextIndex;
+                    setTimeout(() => showCurrentStep(), 800);
+                } else if (current.next === 'finish') {
+                    finishResume();
+                }
             }
         }
 
         function suggestSummary() {
-            // Determine best summary based on title
+            const title = state.data.title.toLowerCase();
             let type = 'general';
-            const title = conversationState.data.title.toLowerCase();
             if (title.includes('software') || title.includes('developer') || title.includes('engineer')) type = 'software';
             else if (title.includes('marketing')) type = 'marketing';
             else if (title.includes('sales')) type = 'sales';
 
-            const summary = aiSuggestions.summaries[type];
+            const summary = suggestions.summaries[type];
 
             addBotMessage(`Here's a suggestion based on your role:\n\n"${summary}"\n\nWould you like to use this or write your own?`, [
                 "Use this one",
                 "Write my own"
             ]);
 
-            // Temporarily override handler
-            const originalHandler = conversationFlow[6].handler;
-            conversationFlow[6].handler = (input) => {
+            // Temporarily override next step handler
+            const originalNext = flow[6].next;
+            flow[6].handler = (input) => {
                 if (input.toLowerCase().includes('use')) {
-                    conversationState.data.summary = summary;
+                    state.data.summary = summary;
                     updatePreview();
                     addBotMessage("Great choice! I've added it to your resume.");
-                    setTimeout(() => askQuestion('experience'), 1500);
+                    flow[6].handler = null; // Remove temporary handler
+                    flow[6].next = originalNext;
+                    setTimeout(() => {
+                        state.step = 7; // Move to experience
+                        showCurrentStep();
+                    }, 1500);
+                    return false;
                 } else {
                     addBotMessage("No problem! Go ahead and write your own summary.");
+                    flow[6].handler = null; // Remove temporary handler
+                    flow[6].next = originalNext;
+                    return false; // Stay here for them to type
                 }
-                conversationFlow[6].handler = originalHandler;
             };
         }
 
         function suggestBullets() {
-            const bullets = aiSuggestions.bullets;
-            addBotMessage("Here are some achievement-focused bullet points you can use. Click the ones that fit your experience:", bullets.map(b => `+ ${b}`));
+            const bullets = suggestions.bullets;
 
-            // Store current step and override
-            conversationState.tempHandler = conversationFlow[10].handler;
-            conversationFlow[10].handler = (input) => {
-                if (input.startsWith('+')) {
-                    // Add to current experience
-                    const bullet = input.substring(2);
-                    if (!conversationState.currentExperience.description) {
-                        conversationState.currentExperience.description = '• ' + bullet;
-                    } else {
-                        conversationState.currentExperience.description += '\n• ' + bullet;
-                    }
-                    addBotMessage("Added! Click another or type 'done' when finished.", ["Done"]);
-                } else if (input.toLowerCase() === 'done') {
-                    conversationState.data.experience.push(conversationState.currentExperience);
+            addBotMessage("Here are some achievement-focused bullet points. Click the ones that fit your experience (click 'Done' when finished):",
+                [...bullets.map(b => `+ ${b}`), "Done"]
+            );
+
+            // Store bullets temporarily
+            state.currentExperience.description = state.currentExperience.description || '';
+
+            // Override handler for this step
+            const stepIndex = flow.findIndex(s => s.id === 'exp_desc');
+            const originalHandler = flow[stepIndex].handler;
+
+            flow[stepIndex].handler = (input) => {
+                if (input.toLowerCase() === 'done') {
+                    // Restore original handler and proceed
+                    flow[stepIndex].handler = originalHandler;
+                    state.data.experience.push({...state.currentExperience});
                     updatePreview();
-                    addBotMessage("Experience saved! Do you want to add another position?", [
-                        "Yes, add another",
-                        "No, continue"
-                    ]);
-                    conversationState.step = 11; // Move to exp_more
-                    conversationFlow[10].handler = conversationState.tempHandler;
+
+                    // Move to exp_more
+                    setTimeout(() => {
+                        state.step = flow.findIndex(s => s.id === 'exp_more');
+                        showCurrentStep();
+                    }, 500);
+                    return false;
+                } else if (input.startsWith('+')) {
+                    // Add bullet
+                    const bullet = input.substring(2).trim();
+                    if (bullet) {
+                        if (state.currentExperience.description) {
+                            state.currentExperience.description += '\n• ' + bullet;
+                        } else {
+                            state.currentExperience.description = '• ' + bullet;
+                        }
+                        addBotMessage(`Added: ${bullet}\n\nClick another or 'Done' to continue.`,
+                            [...bullets.map(b => `+ ${b}`), "Done"]
+                        );
+                    }
+                    return false;
+                } else {
+                    // Regular text input
+                    state.currentExperience.description = input;
+                    state.data.experience.push({...state.currentExperience});
+                    updatePreview();
+                    flow[stepIndex].handler = originalHandler;
+                    return true; // Proceed normally
                 }
             };
         }
 
         function updatePreview() {
-            const data = conversationState.data;
-            const hasContent = data.name || data.experience.length > 0;
+            const data = state.data;
+            const preview = document.getElementById('resumePreview');
+            if (!preview) return;
 
+            const hasContent = data.name || data.experience.length > 0;
             if (!hasContent) return;
 
             let html = '';
@@ -1073,12 +1122,12 @@
             // Header
             html += `
                 <div class="resume-header">
-                    <div class="resume-name">${data.name || 'Your Name'}</div>
-                    <div class="resume-title">${data.title || ''}</div>
+                    <div class="resume-name">${escapeHtml(data.name) || 'Your Name'}</div>
+                    <div class="resume-title">${escapeHtml(data.title) || ''}</div>
                     <div class="resume-contact">
-                        ${data.email ? `<span>${data.email}</span>` : ''}
-                        ${data.phone ? `<span>${data.phone}</span>` : ''}
-                        ${data.location ? `<span>${data.location}</span>` : ''}
+                        ${data.email ? `<span>${escapeHtml(data.email)}</span>` : ''}
+                        ${data.phone ? `<span>${escapeHtml(data.phone)}</span>` : ''}
+                        ${data.location ? `<span>${escapeHtml(data.location)}</span>` : ''}
                     </div>
                 </div>
             `;
@@ -1088,7 +1137,7 @@
                 html += `
                     <div class="resume-section">
                         <div class="section-title">Professional Summary</div>
-                        <div class="job-description">${data.summary}</div>
+                        <div class="job-description">${escapeHtml(data.summary)}</div>
                     </div>
                 `;
             }
@@ -1100,11 +1149,11 @@
                     html += `
                         <div class="job-item">
                             <div class="job-header">
-                                <span class="job-title">${exp.title}</span>
-                                <span class="job-date">${exp.date}</span>
+                                <span class="job-title">${escapeHtml(exp.title)}</span>
+                                <span class="job-date">${escapeHtml(exp.date)}</span>
                             </div>
-                            <div class="job-company">${exp.company}</div>
-                            <div class="job-description">${exp.description}</div>
+                            <div class="job-company">${escapeHtml(exp.company)}</div>
+                            <div class="job-description">${escapeHtml(exp.description)}</div>
                         </div>
                     `;
                 });
@@ -1118,10 +1167,10 @@
                     html += `
                         <div class="job-item">
                             <div class="job-header">
-                                <span class="job-title">${edu.degree}</span>
-                                <span class="job-date">${edu.date}</span>
+                                <span class="job-title">${escapeHtml(edu.degree)}</span>
+                                <span class="job-date">${escapeHtml(edu.date)}</span>
                             </div>
-                            <div class="job-company">${edu.school}</div>
+                            <div class="job-company">${escapeHtml(edu.school)}</div>
                         </div>
                     `;
                 });
@@ -1129,18 +1178,18 @@
             }
 
             // Skills
-            if (data.skills.length > 0 && data.skills[0]) {
+            if (data.skills.length > 0) {
                 html += `
                     <div class="resume-section">
                         <div class="section-title">Skills</div>
                         <div class="skills-container">
-                            ${data.skills.map(s => `<span class="skill-tag">${s}</span>`).join('')}
+                            ${data.skills.map(s => `<span class="skill-tag">${escapeHtml(s)}</span>`).join('')}
                         </div>
                     </div>
                 `;
             }
 
-            document.getElementById('resumePreview').innerHTML = html;
+            preview.innerHTML = html;
         }
 
         function finishResume() {
@@ -1153,8 +1202,9 @@
                     "Make changes"
                 ]);
 
-                // Override handler for final step
-                conversationFlow[16].handler = (input) => {
+                // Set up final handler
+                const skillsIndex = flow.findIndex(s => s.id === 'skills');
+                flow[skillsIndex].handler = (input) => {
                     if (input.toLowerCase().includes('pdf')) {
                         downloadPDF();
                     } else if (input.toLowerCase().includes('word')) {
@@ -1162,14 +1212,23 @@
                     } else if (input.toLowerCase().includes('change')) {
                         addBotMessage("What would you like to change? You can tell me to update any section (name, experience, etc.)");
                     }
+                    return false;
                 };
             }, 1500);
 
-            document.getElementById('downloadBar').classList.add('active');
+            const downloadBar = document.getElementById('downloadBar');
+            if (downloadBar) downloadBar.classList.add('active');
         }
 
         function downloadPDF() {
             const element = document.getElementById('resumePreview');
+            if (!element) return;
+
+            // Check if libraries loaded
+            if (typeof html2canvas === 'undefined' || typeof jspdf === 'undefined') {
+                alert('PDF libraries still loading. Please wait a moment and try again.');
+                return;
+            }
 
             html2canvas(element, {
                 scale: 2,
@@ -1185,44 +1244,52 @@
                 const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
 
                 pdf.addImage(imgData, 'PNG', 0, 0, imgWidth * ratio, imgHeight * ratio);
-                pdf.save(`${conversationState.data.name.replace(/\s+/g, '_')}_Resume.pdf`);
+                pdf.save(`${state.data.name.replace(/\s+/g, '_') || 'Resume'}_Resume.pdf`);
 
                 addBotMessage("✅ PDF downloaded successfully! Check your downloads folder.");
+            }).catch(err => {
+                console.error('PDF Error:', err);
+                alert('Error generating PDF. Please try again.');
             });
         }
 
         function downloadWord() {
-            const data = conversationState.data;
+            const data = state.data;
+            if (!data.name) {
+                alert('Please complete your resume first');
+                return;
+            }
+
             let content = `
-                <h1>${data.name}</h1>
-                <p>${data.title}</p>
-                <p>${data.email} | ${data.phone} | ${data.location}</p>
+                <h1>${escapeHtml(data.name)}</h1>
+                <p>${escapeHtml(data.title)}</p>
+                <p>${escapeHtml(data.email)} | ${escapeHtml(data.phone)} | ${escapeHtml(data.location)}</p>
 
                 <h2>Professional Summary</h2>
-                <p>${data.summary}</p>
+                <p>${escapeHtml(data.summary)}</p>
 
                 <h2>Experience</h2>
             `;
 
             data.experience.forEach(exp => {
                 content += `
-                    <h3>${exp.title} | ${exp.company}</h3>
-                    <p>${exp.date}</p>
-                    <p>${exp.description.replace(/\n/g, '<br>')}</p>
+                    <h3>${escapeHtml(exp.title)} | ${escapeHtml(exp.company)}</h3>
+                    <p>${escapeHtml(exp.date)}</p>
+                    <p>${escapeHtml(exp.description).replace(/\n/g, '<br>')}</p>
                 `;
             });
 
             content += `<h2>Education</h2>`;
             data.education.forEach(edu => {
                 content += `
-                    <h3>${edu.degree}</h3>
-                    <p>${edu.school}, ${edu.date}</p>
+                    <h3>${escapeHtml(edu.degree)}</h3>
+                    <p>${escapeHtml(edu.school)}, ${escapeHtml(edu.date)}</p>
                 `;
             });
 
             content += `
                 <h2>Skills</h2>
-                <p>${data.skills.join(', ')}</p>
+                <p>${escapeHtml(data.skills.join(', '))}</p>
             `;
 
             const html = `
@@ -1232,14 +1299,15 @@
                 </html>
             `;
 
-            const blob = new Blob(['\ufef', html], { type: 'application/msword' });
+            const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `${data.name.replace(/\s+/g, '_')}_Resume.doc`;
+            link.download = `${data.name.replace(/\s+/g, '_') || 'Resume'}_Resume.doc`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            URL.revokeObjectURL(url);
 
             addBotMessage("✅ Word document downloaded! Open it in Microsoft Word.");
         }
