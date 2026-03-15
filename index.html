@@ -3,24 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Resume Assistant | Chat-Based Builder</title>
+    <title>ATS Resume Builder | AI-Powered Optimization</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
             --primary: #2563eb;
-            --primary-light: #dbeafe;
-            --chat-bg: #f0f4f8;
-            --user-msg: #2563eb;
-            --bot-msg: #ffffff;
             --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
             --bg: #f8fafc;
             --text: #1e293b;
             --text-light: #64748b;
@@ -30,8 +24,6 @@
         body {
             font-family: 'Inter', sans-serif;
             background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
             height: 100vh;
             overflow: hidden;
         }
@@ -41,188 +33,157 @@
             height: 100vh;
         }
 
-        .chat-section {
-            width: 45%;
-            min-width: 400px;
+        /* Left Panel - Chat & Input */
+        .left-panel {
+            width: 35%;
+            min-width: 350px;
             background: white;
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            position: relative;
         }
 
         .chat-header {
-            padding: 1.5rem;
+            padding: 1.25rem;
             background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
             color: white;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
 
         .chat-header h1 {
-            font-size: 1.5rem;
-            margin-bottom: 0.25rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .status {
-            font-size: 0.85rem;
-            opacity: 0.9;
+            font-size: 1.25rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background: #10b981;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        .ats-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            background: rgba(255,255,255,0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
         }
 
         .chat-messages {
             flex: 1;
             overflow-y: auto;
-            padding: 2rem;
-            background: var(--chat-bg);
+            padding: 1.5rem;
+            background: #f8fafc;
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
+            gap: 1rem;
         }
 
         .message {
-            max-width: 85%;
+            max-width: 90%;
             animation: slideIn 0.3s ease;
-            position: relative;
         }
 
         @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .bot-message {
-            align-self: flex-start;
-        }
-
-        .user-message {
-            align-self: flex-end;
-        }
+        .bot-message { align-self: flex-start; }
+        .user-message { align-self: flex-end; }
 
         .message-bubble {
-            padding: 1rem 1.25rem;
-            border-radius: 18px;
-            font-size: 0.95rem;
+            padding: 0.875rem 1rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
             line-height: 1.5;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
         .bot-message .message-bubble {
-            background: var(--bot-msg);
-            color: var(--text);
-            border-bottom-left-radius: 4px;
+            background: white;
             border: 1px solid var(--border);
+            border-bottom-left-radius: 4px;
         }
 
         .user-message .message-bubble {
-            background: var(--user-msg);
+            background: var(--primary);
             color: white;
             border-bottom-right-radius: 4px;
         }
 
-        .message-time {
+        /* Suggestion Chips */
+        .suggestion-container {
+            margin-top: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .suggestion-label {
             font-size: 0.75rem;
             color: var(--text-light);
-            margin-top: 0.25rem;
-            padding: 0 0.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
-        .user-message .message-time {
-            text-align: right;
-        }
-
-        .typing-indicator {
-            display: none;
-            align-self: flex-start;
-            background: white;
-            padding: 1rem 1.25rem;
-            border-radius: 18px;
-            border-bottom-left-radius: 4px;
-            border: 1px solid var(--border);
-            margin-bottom: 0.5rem;
-        }
-
-        .typing-indicator.active {
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-        }
-
-        .typing-dot {
-            width: 8px;
-            height: 8px;
-            background: #cbd5e1;
-            border-radius: 50%;
-            animation: typing 1.4s infinite;
-        }
-
-        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-
-        @keyframes typing {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-4px); }
-        }
-
-        .quick-replies {
+        .suggestion-chips {
             display: flex;
             flex-wrap: wrap;
             gap: 0.5rem;
-            margin-top: 0.75rem;
-            padding-left: 0.5rem;
         }
 
-        .quick-reply {
-            background: white;
-            border: 1px solid var(--primary);
-            color: var(--primary);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
+        .chip {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e40af;
+            padding: 0.375rem 0.875rem;
+            border-radius: 16px;
+            font-size: 0.8rem;
             cursor: pointer;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
         }
 
-        .quick-reply:hover {
+        .chip:hover {
             background: var(--primary);
             color: white;
             transform: translateY(-1px);
         }
 
+        .chip.power-word {
+            background: #f0fdf4;
+            border-color: #86efac;
+            color: #166534;
+        }
+
+        .chip.power-word:hover {
+            background: #166534;
+            color: white;
+        }
+
+        .chip.skill-match {
+            background: #fef3c7;
+            border-color: #fcd34d;
+            color: #92400e;
+        }
+
+        .chip.skill-match:hover {
+            background: #d97706;
+            color: white;
+        }
+
         .chat-input-container {
-            padding: 1.5rem;
+            padding: 1rem;
             background: white;
             border-top: 1px solid var(--border);
         }
 
         .input-wrapper {
             display: flex;
-            gap: 0.75rem;
+            gap: 0.5rem;
             align-items: center;
-            background: var(--chat-bg);
+            background: #f8fafc;
             padding: 0.5rem;
             border-radius: 24px;
             border: 1px solid var(--border);
@@ -232,18 +193,15 @@
             flex: 1;
             border: none;
             background: transparent;
-            padding: 0.75rem;
-            font-size: 0.95rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
             outline: none;
-            resize: none;
-            max-height: 100px;
-            min-height: 24px;
             font-family: inherit;
         }
 
         .send-btn {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             background: var(--primary);
             color: white;
@@ -252,41 +210,245 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
-            flex-shrink: 0;
         }
 
-        .send-btn:hover {
-            background: #1d4ed8;
-            transform: scale(1.05);
-        }
-
-        .send-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .preview-section {
+        /* Right Panel - Preview & ATS Score */
+        .right-panel {
             flex: 1;
+            display: flex;
+            flex-direction: column;
             background: #e2e8f0;
+            overflow: hidden;
+        }
+
+        /* ATS Score Panel */
+        .ats-panel {
+            background: white;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem;
+        }
+
+        .score-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .score-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: conic-gradient(var(--success) calc(var(--score) * 1%), #e2e8f0 0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text);
+        }
+
+        .score-circle::before {
+            content: '';
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .score-text {
+            position: relative;
+            z-index: 1;
+        }
+
+        .score-details {
+            flex: 1;
+        }
+
+        .score-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .score-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .keyword-matches {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .match-tag {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .match-tag.found {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .match-tag.missing {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Preview Area */
+        .preview-container {
+            flex: 1;
             overflow-y: auto;
             padding: 2rem;
             display: flex;
             justify-content: center;
-            position: relative;
         }
 
+        /* ATS-Friendly Resume Template */
         .resume-preview {
             width: 210mm;
             min-height: 297mm;
             background: white;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
-            padding: 2.5rem;
-            position: relative;
-            transition: all 0.3s;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            padding: 2rem 2.5rem;
+            font-family: 'Calibri', 'Arial', sans-serif; /* ATS-safe fonts */
+            font-size: 11pt;
+            line-height: 1.4;
+            color: #000;
         }
 
+        .resume-header-ats {
+            border-bottom: 2px solid #000;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .resume-name-ats {
+            font-size: 18pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .resume-contact-ats {
+            font-size: 10pt;
+            color: #333;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .section-ats {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title-ats {
+            font-size: 12pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-bottom: 1px solid #000;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.25rem;
+        }
+
+        .job-item-ats {
+            margin-bottom: 1rem;
+        }
+
+        .job-header-ats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.25rem;
+        }
+
+        .job-title-ats {
+            font-weight: bold;
+            font-size: 11pt;
+        }
+
+        .job-date-ats {
+            font-size: 10pt;
+            color: #333;
+        }
+
+        .job-company-ats {
+            font-style: italic;
+            font-size: 10pt;
+            margin-bottom: 0.25rem;
+        }
+
+        .job-desc-ats {
+            font-size: 10.5pt;
+            line-height: 1.4;
+        }
+
+        .job-desc-ats ul {
+            margin-left: 1.5rem;
+            margin-top: 0.25rem;
+        }
+
+        .job-desc-ats li {
+            margin-bottom: 0.25rem;
+        }
+
+        .skills-ats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .skill-item-ats {
+            background: #f3f4f6;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 10pt;
+        }
+
+        /* Real-time Analysis Tooltip */
+        .analysis-tooltip {
+            position: fixed;
+            background: #1e293b;
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            max-width: 300px;
+            z-index: 1000;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .analysis-tooltip::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 20px;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid #1e293b;
+        }
+
+        .analysis-tooltip.show {
+            display: block;
+        }
+
+        .tooltip-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: #60a5fa;
+        }
+
+        /* Welcome Screen */
         .welcome-screen {
             position: fixed;
             top: 0;
@@ -316,14 +478,12 @@
         .welcome-content h1 {
             font-size: 2.5rem;
             margin-bottom: 1rem;
-            font-family: 'Playfair Display', serif;
         }
 
         .welcome-content p {
             font-size: 1.1rem;
             opacity: 0.9;
             margin-bottom: 2rem;
-            line-height: 1.6;
         }
 
         .start-btn {
@@ -336,15 +496,11 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
         }
 
         .start-btn:hover {
             background: #1d4ed8;
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
         }
 
         .features {
@@ -363,827 +519,667 @@
             opacity: 0.8;
         }
 
-        .resume-header {
-            border-bottom: 2px solid #1e293b;
-            padding-bottom: 1.5rem;
-            margin-bottom: 1.5rem;
+        .hidden { display: none !important; }
+
+        /* Weak text highlighting in preview */
+        .weak-text {
+            background: rgba(254, 226, 226, 0.5);
+            border-bottom: 2px wavy #ef4444;
         }
 
-        .resume-name {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 0.5rem;
-        }
-
-        .resume-title {
-            font-size: 1.1rem;
-            color: #64748b;
-            margin-bottom: 0.75rem;
-        }
-
-        .resume-contact {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            font-size: 0.9rem;
-            color: #64748b;
-        }
-
-        .resume-section {
-            margin-bottom: 1.5rem;
-        }
-
-        .section-title {
-            font-size: 1rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 0.5rem;
-            margin-bottom: 1rem;
-            color: #1e293b;
-        }
-
-        .job-item {
-            margin-bottom: 1.25rem;
-        }
-
-        .job-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.25rem;
-        }
-
-        .job-title {
-            font-weight: 600;
-            color: #1e293b;
-        }
-
-        .job-date {
-            color: #64748b;
-            font-size: 0.9rem;
-        }
-
-        .job-company {
-            color: #64748b;
-            font-style: italic;
-            margin-bottom: 0.5rem;
-        }
-
-        .job-description {
-            color: #334155;
-            font-size: 0.95rem;
-            line-height: 1.6;
-            white-space: pre-line;
-        }
-
-        .skills-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        .skill-tag {
-            background: #f1f5f9;
-            color: #475569;
-            padding: 0.25rem 0.75rem;
-            border-radius: 4px;
-            font-size: 0.9rem;
-        }
-
-        .download-bar {
-            position: fixed;
-            bottom: 0;
-            right: 0;
-            width: 55%;
-            background: white;
-            padding: 1rem 2rem;
-            border-top: 1px solid var(--border);
-            display: none;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 -4px 6px -1px rgba(0,0,0,0.05);
-        }
-
-        .download-bar.active {
-            display: flex;
-        }
-
-        .progress-info {
-            font-size: 0.9rem;
-            color: var(--text-light);
-        }
-
-        .download-actions {
-            display: flex;
-            gap: 0.75rem;
-        }
-
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            border: none;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-        }
-
-        .btn-primary {
-            background: var(--success);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #059669;
-        }
-
-        .btn-secondary {
-            background: white;
-            color: var(--text);
-            border: 1px solid var(--border);
-        }
-
-        .btn-secondary:hover {
-            background: var(--bg);
-        }
-
-        .hidden {
-            display: none !important;
+        .strong-text {
+            background: rgba(209, 250, 229, 0.3);
         }
 
         @media (max-width: 1024px) {
-            .app-container {
-                flex-direction: column;
-            }
-
-            .chat-section {
-                width: 100%;
-                height: 50vh;
-            }
-
-            .preview-section {
-                height: 50vh;
-                width: 100%;
-            }
-
-            .resume-preview {
-                transform: scale(0.7);
-                transform-origin: top center;
-            }
-
-            .download-bar {
-                width: 100%;
-            }
+            .app-container { flex-direction: column; }
+            .left-panel { width: 100%; height: 50vh; }
+            .right-panel { height: 50vh; }
+            .resume-preview { transform: scale(0.6); transform-origin: top center; }
         }
     </style>
 </head>
 <body>
 
+    <!-- Analysis Tooltip -->
+    <div class="analysis-tooltip" id="analysisTooltip">
+        <div class="tooltip-title">💡 Suggestion</div>
+        <div id="tooltipContent">Try using more action verbs</div>
+    </div>
+
     <!-- Welcome Screen -->
     <div class="welcome-screen" id="welcomeScreen">
         <div class="welcome-content">
-            <div class="welcome-icon">💬</div>
-            <h1>Meet Your AI Resume Assistant</h1>
-            <p>I'll guide you through building a professional resume with personalized suggestions. Just chat with me naturally—I'll ask the right questions and craft your resume as we go!</p>
-            <button class="start-btn" id="startBtn">
-                Start Conversation →
-            </button>
+            <div class="welcome-icon">📄</div>
+            <h1>ATS-Optimized Resume Builder</h1>
+            <p>Create a resume that passes Applicant Tracking Systems. Get real-time keyword suggestions, action verb recommendations, and ATS compatibility scoring.</p>
+            <button class="start-btn" id="startBtn">Start Building →</button>
             <div class="features">
-                <div class="feature">✓ No forms to fill</div>
-                <div class="feature">✓ Smart suggestions</div>
-                <div class="feature">✓ Real-time preview</div>
+                <div class="feature">✓ ATS Score Tracking</div>
+                <div class="feature">✓ Keyword Optimization</div>
+                <div class="feature">✓ Action Verb Suggestions</div>
             </div>
         </div>
     </div>
 
     <!-- Main App -->
     <div class="app-container hidden" id="mainApp">
-        <!-- Chat Section -->
-        <div class="chat-section">
+        <!-- Left Panel: Chat -->
+        <div class="left-panel">
             <div class="chat-header">
-                <h1>
-                    <span>🤖</span>
-                    Resume Assistant
-                </h1>
-                <div class="status">
-                    <span class="status-dot"></span>
-                    <span>Online and ready to help</span>
+                <h1>🤖 Resume Assistant</h1>
+                <div class="ats-badge">
+                    <span>⚡ ATS Optimized</span>
                 </div>
             </div>
 
-            <div class="chat-messages" id="chatMessages">
-                <div class="typing-indicator" id="typingIndicator">
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                </div>
-            </div>
+            <div class="chat-messages" id="chatMessages"></div>
 
             <div class="chat-input-container">
                 <div class="input-wrapper">
-                    <input
-                        type="text"
-                        class="chat-input"
-                        id="userInput"
-                        placeholder="Type your message..."
-                    >
-                    <button class="send-btn" id="sendBtn">
-                        ↑
-                    </button>
+                    <input type="text" class="chat-input" id="userInput" placeholder="Type your response...">
+                    <button class="send-btn" id="sendBtn">↑</button>
                 </div>
             </div>
         </div>
 
-        <!-- Preview Section -->
-        <div class="preview-section">
-            <div class="resume-preview" id="resumePreview">
-                <div style="text-align: center; color: #94a3b8; padding-top: 100px;">
-                    <div style="font-size: 3rem; margin-bottom: 1rem;">📄</div>
-                    <div style="font-size: 1.1rem;">Your resume will appear here</div>
-                    <div style="font-size: 0.9rem; margin-top: 0.5rem;">Start chatting to build it!</div>
+        <!-- Right Panel: Preview & ATS -->
+        <div class="right-panel">
+            <!-- ATS Score Panel -->
+            <div class="ats-panel">
+                <div class="score-section">
+                    <div class="score-circle" id="scoreCircle" style="--score: 0;">
+                        <span class="score-text" id="scoreText">0</span>
+                    </div>
+                    <div class="score-details">
+                        <div class="score-title">ATS Compatibility Score</div>
+                        <div class="score-subtitle" id="scoreFeedback">Start adding content to analyze</div>
+                    </div>
+                </div>
+                <div class="keyword-matches" id="keywordMatches">
+                    <!-- Dynamic keywords -->
                 </div>
             </div>
-        </div>
 
-        <!-- Download Bar -->
-        <div class="download-bar" id="downloadBar">
-            <div class="progress-info">
-                ✅ Your resume is ready!
-            </div>
-            <div class="download-actions">
-                <button class="btn btn-secondary" id="downloadWordBtn">
-                    💾 Word
-                </button>
-                <button class="btn btn-primary" id="downloadPdfBtn">
-                    📄 Download PDF
-                </button>
+            <!-- Preview -->
+            <div class="preview-container">
+                <div class="resume-preview" id="resumePreview">
+                    <div style="text-align: center; color: #94a3b8; padding-top: 100px;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">📝</div>
+                        <div>Your ATS-optimized resume will appear here</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // State Management
+        // ATS Keywords Database by Industry
+        const atsKeywords = {
+            software: ['Python', 'JavaScript', 'React', 'Node.js', 'AWS', 'Docker', 'Kubernetes', 'CI/CD', 'Agile', 'SQL', 'NoSQL', 'REST API', 'GraphQL', 'Microservices', 'Git', 'DevOps', 'Machine Learning', 'Data Structures', 'Algorithms'],
+            marketing: ['SEO', 'SEM', 'Google Analytics', 'Content Strategy', 'Social Media', 'Brand Management', 'Campaign Management', 'Market Research', 'CRM', 'Email Marketing', 'PPC', 'Conversion Rate Optimization', 'A/B Testing', 'Marketing Automation', 'Copywriting'],
+            sales: ['B2B Sales', 'B2C Sales', 'CRM', 'Salesforce', 'Lead Generation', 'Cold Calling', 'Negotiation', 'Account Management', 'Pipeline Management', 'Quota Achievement', 'Relationship Building', 'Consultative Selling', 'Sales Strategy'],
+            project_management: ['Agile', 'Scrum', 'Kanban', 'JIRA', 'Stakeholder Management', 'Risk Management', 'Budget Management', 'PMP', 'Cross-functional Teams', 'Project Lifecycle', 'Resource Allocation', 'Timeline Management'],
+            general: ['Communication', 'Leadership', 'Problem Solving', 'Team Management', 'Strategic Planning', 'Data Analysis', 'Microsoft Office', 'Excel', 'PowerPoint', 'Project Management', 'Time Management', 'Critical Thinking']
+        };
+
+        // Action Verbs Database
+        const actionVerbs = {
+            achievement: ['Achieved', 'Exceeded', 'Surpassed', 'Outperformed', 'Delivered', 'Attained', 'Reached', 'Targeted'],
+            leadership: ['Led', 'Managed', 'Directed', 'Supervised', 'Guided', 'Mentored', 'Coached', 'Trained', 'Developed'],
+            creation: ['Created', 'Developed', 'Designed', 'Built', 'Implemented', 'Established', 'Launched', 'Initiated', 'Pioneered'],
+            improvement: ['Improved', 'Enhanced', 'Optimized', 'Streamlined', 'Refined', 'Upgraded', 'Transformed', 'Revamped'],
+            analysis: ['Analyzed', 'Evaluated', 'Assessed', 'Examined', 'Investigated', 'Researched', 'Audited', 'Reviewed'],
+            communication: ['Presented', 'Negotiated', 'Collaborated', 'Facilitated', 'Coordinated', 'Liaised', 'Communicated', 'Authored']
+        };
+
+        // Weak words to avoid
+        const weakWords = ['responsible for', 'helped', 'assisted', 'worked on', 'participated in', 'involved in', 'duties included', 'helped to'];
+
+        // State
         const state = {
             step: 0,
             data: {
-                name: '',
-                title: '',
-                email: '',
-                phone: '',
-                location: '',
-                summary: '',
-                experience: [],
-                education: [],
-                skills: []
+                name: '', title: '', email: '', phone: '', location: '',
+                summary: '', experience: [], education: [], skills: []
             },
             currentExperience: null,
             currentEducation: null,
-            awaitingChoice: null // For handling temporary states like suggestions
+            industry: 'general',
+            atsScore: 0
         };
 
-        // Conversation Flow - Fixed with proper messages for all steps
+        // Conversation Flow
         const flow = [
             {
                 id: 'welcome',
-                message: "Hi there! I'm your AI Resume Assistant. I'll help you create a professional resume by asking you a few questions. Ready to start?",
-                quickReplies: ["Yes, let's go!", "Ready"],
-                next: 'name'
+                message: "Welcome! I'll help you build an ATS-optimized resume. First, what industry are you targeting? (This helps me suggest the right keywords)",
+                quickReplies: ['Software/IT', 'Marketing', 'Sales', 'Project Management', 'Other'],
+                handler: (input) => {
+                    const map = {
+                        'software': 'software', 'it': 'software', 'tech': 'software',
+                        'marketing': 'marketing',
+                        'sales': 'sales',
+                        'project': 'project_management', 'pm': 'project_management',
+                        'other': 'general'
+                    };
+                    const key = Object.keys(map).find(k => input.toLowerCase().includes(k));
+                    state.industry = key ? map[key] : 'general';
+                    return true;
+                }
             },
             {
                 id: 'name',
-                message: "What's your full name? (This will appear at the top of your resume)",
-                quickReplies: [],
-                next: 'title',
-                handler: (input) => {
-                    state.data.name = input;
-                    updatePreview();
-                    return true; // Proceed to next
-                }
+                message: "Great! Let's start with your name. Use your full professional name as it appears on your ID.",
+                next: 'title'
             },
             {
                 id: 'title',
-                message: "What job title are you targeting? (e.g., Senior Marketing Manager, Software Engineer)",
-                quickReplies: [],
+                message: "What's your target job title? Be specific (e.g., 'Senior Software Engineer' not just 'Developer').",
                 next: 'contact',
-                handler: (input) => {
-                    state.data.title = input;
-                    updatePreview();
-                    return true;
-                }
+                suggestions: ['Software Engineer', 'Product Manager', 'Marketing Director', 'Sales Representative']
             },
             {
                 id: 'contact',
-                message: "What's your email address?",
-                quickReplies: [],
-                next: 'phone',
-                handler: (input) => {
-                    state.data.email = input;
-                    return true;
-                }
+                message: "Enter your email address. Use a professional email (avoid nicknames or numbers if possible).",
+                next: 'phone'
             },
             {
                 id: 'phone',
-                message: "What's your phone number?",
-                quickReplies: [],
-                next: 'location',
-                handler: (input) => {
-                    state.data.phone = input;
-                    return true;
-                }
+                message: "Phone number? Include area code. Format: (555) 123-4567",
+                next: 'location'
             },
             {
                 id: 'location',
-                message: "What city/state are you located in?",
-                quickReplies: [],
-                next: 'summary',
-                handler: (input) => {
-                    state.data.location = input;
-                    updatePreview();
-                    return true;
-                }
+                message: "City and State? (ATS systems often filter by location)",
+                next: 'summary'
             },
             {
                 id: 'summary',
-                message: "Now let's write your professional summary. In 2-3 sentences, tell me about your background and what you're looking for. Or I can suggest one based on your title!",
-                quickReplies: ["Suggest one for me", "I'll write my own"],
-                next: 'experience',
-                handler: (input) => {
-                    if (input.toLowerCase().includes('suggest')) {
-                        suggestSummary();
-                        return false; // Don't proceed yet
-                    } else {
-                        state.data.summary = input;
-                        updatePreview();
-                        return true;
-                    }
-                }
+                message: "Write a professional summary (3-4 sentences). Include your years of experience, key skills, and what you're looking for. I'll analyze it for keywords!",
+                analyze: true,
+                suggestions: ['power_words'],
+                next: 'experience'
             },
             {
                 id: 'experience',
-                message: "Let's add your work experience. Tell me about your most recent job. What's your job title?",
-                quickReplies: [],
-                next: 'exp_company',
-                handler: (input) => {
-                    state.currentExperience = {
-                        title: input,
-                        company: '',
-                        date: '',
-                        description: ''
-                    };
-                    return true;
-                }
+                message: "Let's add work experience. What's your most recent job title?",
+                next: 'exp_company'
             },
             {
                 id: 'exp_company',
-                message: "What company did you work at?",
-                quickReplies: [],
-                next: 'exp_date',
-                handler: (input) => {
-                    state.currentExperience.company = input;
-                    return true;
-                }
+                message: "Company name?",
+                next: 'exp_date'
             },
             {
                 id: 'exp_date',
-                message: "What were the dates? (e.g., Jan 2020 - Present or 2019-2021)",
-                quickReplies: [],
-                next: 'exp_desc',
-                handler: (input) => {
-                    state.currentExperience.date = input;
-                    return true;
-                }
+                message: "Dates? (Format: MM/YYYY - MM/YYYY or 'Present')",
+                next: 'exp_desc'
             },
             {
                 id: 'exp_desc',
-                message: "Now describe what you did there. Focus on achievements with numbers if possible! Or type 'suggest' for bullet points.",
-                quickReplies: ["Suggest bullet points"],
-                next: 'exp_more',
-                handler: (input) => {
-                    if (input.toLowerCase().includes('suggest')) {
-                        suggestBullets();
-                        return false;
-                    } else {
-                        state.currentExperience.description = input;
-                        state.data.experience.push({...state.currentExperience});
-                        updatePreview();
-                        return true;
-                    }
-                }
+                message: "Describe your achievements using action verbs. Start bullets with words like 'Led', 'Increased', 'Implemented'. Focus on metrics (%, $, #). I'll suggest improvements as you type!",
+                analyze: true,
+                suggestions: ['action_verbs', 'metrics'],
+                multiline: true,
+                next: 'exp_more'
             },
             {
                 id: 'exp_more',
-                message: "Experience added! Do you want to add another position?",
-                quickReplies: ["Yes, add another", "No, continue to education"],
-                next: 'education',
+                message: "Add another position?",
+                quickReplies: ['Yes, add more', 'No, continue to education'],
                 handler: (input) => {
-                    if (input.toLowerCase().includes('yes') || input.toLowerCase().includes('another')) {
-                        // Go back to experience step
+                    if (input.toLowerCase().includes('yes')) {
                         setTimeout(() => goToStep('experience'), 500);
-                        return false; // Don't increment, we manually navigated
-                    } else {
-                        return true;
+                        return false;
                     }
+                    return true;
                 }
             },
             {
                 id: 'education',
-                message: "Let's add your education. What's your highest degree? (e.g., Bachelor of Science in Computer Science)",
-                quickReplies: [],
-                next: 'edu_school',
-                handler: (input) => {
-                    state.currentEducation = {
-                        degree: input,
-                        school: '',
-                        date: ''
-                    };
-                    return true;
-                }
+                message: "Highest degree? (e.g., Bachelor of Science in Computer Science)",
+                next: 'edu_school'
             },
             {
                 id: 'edu_school',
-                message: "Which university or school?",
-                quickReplies: [],
-                next: 'edu_date',
-                handler: (input) => {
-                    state.currentEducation.school = input;
-                    return true;
-                }
+                message: "University name?",
+                next: 'edu_date'
             },
             {
                 id: 'edu_date',
-                message: "What year did you graduate?",
-                quickReplies: [],
-                next: 'edu_more',
-                handler: (input) => {
-                    state.currentEducation.date = input;
-                    state.data.education.push({...state.currentEducation});
-                    updatePreview();
-                    return true;
-                }
+                message: "Graduation year?",
+                next: 'edu_more'
             },
             {
                 id: 'edu_more',
-                message: "Education added! Do you want to add another degree?",
-                quickReplies: ["Yes, add another", "No, continue to skills"],
-                next: 'skills',
+                message: "Add another degree?",
+                quickReplies: ['Yes', 'No, continue to skills'],
                 handler: (input) => {
-                    if (input.toLowerCase().includes('yes') || input.toLowerCase().includes('another')) {
+                    if (input.toLowerCase().includes('yes')) {
                         setTimeout(() => goToStep('education'), 500);
                         return false;
-                    } else {
-                        return true;
                     }
+                    return true;
                 }
             },
             {
                 id: 'skills',
-                message: "Finally, let's add your skills. List them separated by commas (e.g., Project Management, Python, Data Analysis, Leadership)",
-                quickReplies: [],
-                next: 'finish',
-                handler: (input) => {
-                    state.data.skills = input.split(',').map(s => s.trim()).filter(s => s);
-                    updatePreview();
-                    return true;
-                }
+                message: "List your technical skills and tools. Separate with commas. I'll check against ATS keywords for your industry!",
+                analyze: true,
+                suggestions: ['skills'],
+                next: 'finish'
             }
         ];
 
-        // AI Suggestions Database
-        const suggestions = {
-            summaries: {
-                software: "Innovative Software Engineer with 5+ years of experience designing scalable applications. Proficient in React, Node.js, and cloud architecture with a passion for clean code and user experience.",
-                marketing: "Results-driven Marketing Manager with 6+ years of experience developing data-driven campaigns that increased revenue by 45%. Expert in digital strategy, SEO/SEM, and brand management.",
-                sales: "Top-performing Sales Representative with consistent record of exceeding quota by 150%. Expert in B2B sales, relationship building, and consultative selling.",
-                general: "Results-driven professional with 5+ years of experience delivering exceptional results in fast-paced environments. Proven track record of increasing efficiency and leading high-performing teams."
-            },
-            bullets: [
-                "Increased team productivity by 35% through process optimization",
-                "Managed projects with budgets up to $1M, delivering 100% on time",
-                "Led cross-functional team of 10+ members to achieve goals",
-                "Implemented new systems reducing costs by 25%",
-                "Developed strategic initiatives resulting in 40% revenue growth",
-                "Recognized as top performer for exceeding targets"
-            ]
-        };
-
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('Resume Builder Loaded');
-
-            // Event Listeners
             document.getElementById('startBtn').addEventListener('click', startChat);
-            document.getElementById('sendBtn').addEventListener('click', sendMessage);
+            document.getElementById('sendBtn').addEventListener('click', handleSend);
             document.getElementById('userInput').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') sendMessage();
+                if (e.key === 'Enter') handleSend();
             });
-            document.getElementById('downloadPdfBtn').addEventListener('click', downloadPDF);
-            document.getElementById('downloadWordBtn').addEventListener('click', downloadWord);
         });
 
         function startChat() {
-            console.log('Starting chat...');
-
-            const welcomeScreen = document.getElementById('welcomeScreen');
-            const mainApp = document.getElementById('mainApp');
-
-            if (!welcomeScreen || !mainApp) {
-                console.error('Critical elements missing!');
-                alert('Error: Page elements not found. Please refresh.');
-                return;
-            }
-
-            // Hide welcome, show app
-            welcomeScreen.style.display = 'none';
-            mainApp.classList.remove('hidden');
-
-            // Start conversation
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
             state.step = 0;
-            showCurrentStep();
+            showStep();
         }
 
-        function showCurrentStep() {
-            const current = flow[state.step];
-            if (current) {
-                addBotMessage(current.message, current.quickReplies);
+        function showStep() {
+            const step = flow[state.step];
+            if (!step) return;
+
+            let msg = step.message;
+            if (step.id === 'name' && state.industry) {
+                msg += `\n\n💡 I'll suggest ${state.industry.replace('_', ' ')} keywords to boost your ATS score!`;
             }
+
+            addBotMessage(msg, step.quickReplies, step.suggestions);
         }
 
-        function goToStep(stepId) {
-            const index = flow.findIndex(s => s.id === stepId);
-            if (index !== -1) {
-                state.step = index;
-                showCurrentStep();
-            }
-        }
+        function addBotMessage(text, quickReplies = [], suggestions = []) {
+            const container = document.getElementById('chatMessages');
 
-        function addBotMessage(text, quickReplies = []) {
-            const messagesContainer = document.getElementById('chatMessages');
-            const typingIndicator = document.getElementById('typingIndicator');
+            // Typing indicator
+            const typing = document.createElement('div');
+            typing.className = 'message bot-message';
+            typing.innerHTML = '<div class="message-bubble">...</div>';
+            container.appendChild(typing);
+            container.scrollTop = container.scrollHeight;
 
-            if (!messagesContainer || !typingIndicator) return;
-
-            // Show typing
-            typingIndicator.classList.add('active');
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-            // Delay for realism
             setTimeout(() => {
-                typingIndicator.classList.remove('active');
+                typing.remove();
 
-                const messageDiv = document.createElement('div');
-                messageDiv.className = 'message bot-message';
+                const div = document.createElement('div');
+                div.className = 'message bot-message';
 
                 let html = `<div class="message-bubble">${text}</div>`;
 
-                if (quickReplies.length > 0) {
-                    html += '<div class="quick-replies">';
-                    quickReplies.forEach(reply => {
-                        html += `<button class="quick-reply" onclick="useQuickReply('${reply.replace(/'/g, "\\'")}')">${reply}</button>`;
+                if (suggestions.length > 0) {
+                    html += '<div class="suggestion-container">';
+                    suggestions.forEach(type => {
+                        html += `<div class="suggestion-label">${getSuggestionLabel(type)}</div>`;
+                        html += `<div class="suggestion-chips">${getSuggestionChips(type)}</div>`;
                     });
                     html += '</div>';
                 }
 
-                messageDiv.innerHTML = html;
-                messagesContainer.insertBefore(messageDiv, typingIndicator);
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                if (quickReplies.length > 0) {
+                    html += '<div class="suggestion-container">';
+                    html += `<div class="suggestion-chips">${quickReplies.map(r =>
+                        `<button class="chip" onclick="useQuickReply('${r}')">${r}</button>`
+                    ).join('')}</div>`;
+                    html += '</div>';
+                }
+
+                div.innerHTML = html;
+                container.appendChild(div);
+                container.scrollTop = container.scrollHeight;
             }, 600);
         }
 
-        function addUserMessage(text) {
-            const messagesContainer = document.getElementById('chatMessages');
-            if (!messagesContainer) return;
-
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message user-message';
-            messageDiv.innerHTML = `
-                <div class="message-bubble">${escapeHtml(text)}</div>
-                <div class="message-time">Just now</div>
-            `;
-
-            const typingIndicator = document.getElementById('typingIndicator');
-            messagesContainer.insertBefore(messageDiv, typingIndicator);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        function getSuggestionLabel(type) {
+            const labels = {
+                'power_words': '💪 Power Words',
+                'action_verbs': '⚡ Action Verbs',
+                'metrics': '📊 Add Metrics',
+                'skills': '🎯 Industry Keywords'
+            };
+            return labels[type] || 'Suggestions';
         }
 
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+        function getSuggestionChips(type) {
+            let chips = [];
+            if (type === 'power_words') {
+                chips = ['Results-driven', 'Strategic', 'Innovative', 'Proven track record', 'Expert in'];
+            } else if (type === 'action_verbs') {
+                chips = ['Led', 'Increased', 'Implemented', 'Streamlined', 'Achieved', 'Optimized'];
+            } else if (type === 'metrics') {
+                chips = ['by 25%', 'resulting in $50K savings', 'improving efficiency by 40%', 'managing team of 10'];
+            } else if (type === 'skills') {
+                chips = atsKeywords[state.industry] || atsKeywords.general;
+                chips = chips.slice(0, 8); // Top 8
+            }
+
+            const className = type === 'action_verbs' ? 'chip power-word' :
+                             type === 'skills' ? 'chip skill-match' : 'chip';
+
+            return chips.map(c => `<button class="${className}" onclick="insertText('${c}')">${c}</button>`).join('');
+        }
+
+        function insertText(text) {
+            const input = document.getElementById('userInput');
+            const current = input.value;
+            if (current && !current.endsWith(' ')) {
+                input.value = current + ' ' + text + ' ';
+            } else {
+                input.value = current + text + ' ';
+            }
+            input.focus();
+            analyzeInput(input.value);
         }
 
         function useQuickReply(text) {
-            const input = document.getElementById('userInput');
-            if (input) {
-                input.value = text;
-                sendMessage();
-            }
+            document.getElementById('userInput').value = text;
+            handleSend();
         }
 
-        function sendMessage() {
+        function handleSend() {
             const input = document.getElementById('userInput');
-            if (!input) return;
-
             const text = input.value.trim();
             if (!text) return;
 
             addUserMessage(text);
             input.value = '';
 
-            // Process message
-            processMessage(text);
-        }
+            const step = flow[state.step];
 
-        function processMessage(input) {
-            const current = flow[state.step];
-            if (!current) return;
+            // Store data based on step
+            storeData(step.id, text);
 
-            // Check if we have a special handler
-            if (current.handler) {
-                const shouldProceed = current.handler(input);
-                if (shouldProceed === false) {
-                    // Handler wants to stay on current step or manually navigate
-                    return;
-                }
+            // Analyze if needed
+            if (step.analyze) {
+                analyzeText(text, step.id);
             }
 
-            // Move to next step
-            if (current.next) {
-                const nextIndex = flow.findIndex(s => s.id === current.next);
-                if (nextIndex !== -1) {
-                    state.step = nextIndex;
-                    setTimeout(() => showCurrentStep(), 800);
-                } else if (current.next === 'finish') {
-                    finishResume();
+            // Move to next
+            setTimeout(() => {
+                if (step.handler) {
+                    const result = step.handler(text);
+                    if (result === false) return;
                 }
-            }
-        }
 
-        function suggestSummary() {
-            const title = state.data.title.toLowerCase();
-            let type = 'general';
-            if (title.includes('software') || title.includes('developer') || title.includes('engineer')) type = 'software';
-            else if (title.includes('marketing')) type = 'marketing';
-            else if (title.includes('sales')) type = 'sales';
-
-            const summary = suggestions.summaries[type];
-
-            addBotMessage(`Here's a suggestion based on your role:\n\n"${summary}"\n\nWould you like to use this or write your own?`, [
-                "Use this one",
-                "Write my own"
-            ]);
-
-            // Temporarily override next step handler
-            const originalNext = flow[6].next;
-            flow[6].handler = (input) => {
-                if (input.toLowerCase().includes('use')) {
-                    state.data.summary = summary;
-                    updatePreview();
-                    addBotMessage("Great choice! I've added it to your resume.");
-                    flow[6].handler = null; // Remove temporary handler
-                    flow[6].next = originalNext;
-                    setTimeout(() => {
-                        state.step = 7; // Move to experience
-                        showCurrentStep();
-                    }, 1500);
-                    return false;
-                } else {
-                    addBotMessage("No problem! Go ahead and write your own summary.");
-                    flow[6].handler = null; // Remove temporary handler
-                    flow[6].next = originalNext;
-                    return false; // Stay here for them to type
-                }
-            };
-        }
-
-        function suggestBullets() {
-            const bullets = suggestions.bullets;
-
-            addBotMessage("Here are some achievement-focused bullet points. Click the ones that fit your experience (click 'Done' when finished):",
-                [...bullets.map(b => `+ ${b}`), "Done"]
-            );
-
-            // Store bullets temporarily
-            state.currentExperience.description = state.currentExperience.description || '';
-
-            // Override handler for this step
-            const stepIndex = flow.findIndex(s => s.id === 'exp_desc');
-            const originalHandler = flow[stepIndex].handler;
-
-            flow[stepIndex].handler = (input) => {
-                if (input.toLowerCase() === 'done') {
-                    // Restore original handler and proceed
-                    flow[stepIndex].handler = originalHandler;
-                    state.data.experience.push({...state.currentExperience});
-                    updatePreview();
-
-                    // Move to exp_more
-                    setTimeout(() => {
-                        state.step = flow.findIndex(s => s.id === 'exp_more');
-                        showCurrentStep();
-                    }, 500);
-                    return false;
-                } else if (input.startsWith('+')) {
-                    // Add bullet
-                    const bullet = input.substring(2).trim();
-                    if (bullet) {
-                        if (state.currentExperience.description) {
-                            state.currentExperience.description += '\n• ' + bullet;
-                        } else {
-                            state.currentExperience.description = '• ' + bullet;
-                        }
-                        addBotMessage(`Added: ${bullet}\n\nClick another or 'Done' to continue.`,
-                            [...bullets.map(b => `+ ${b}`), "Done"]
-                        );
+                if (step.next) {
+                    const nextIndex = flow.findIndex(s => s.id === step.next);
+                    if (nextIndex !== -1) {
+                        state.step = nextIndex;
+                        showStep();
+                    } else if (step.next === 'finish') {
+                        finishResume();
                     }
-                    return false;
-                } else {
-                    // Regular text input
-                    state.currentExperience.description = input;
-                    state.data.experience.push({...state.currentExperience});
-                    updatePreview();
-                    flow[stepIndex].handler = originalHandler;
-                    return true; // Proceed normally
                 }
-            };
+            }, 1000);
+        }
+
+        function addUserMessage(text) {
+            const container = document.getElementById('chatMessages');
+            const div = document.createElement('div');
+            div.className = 'message user-message';
+            div.innerHTML = `<div class="message-bubble">${escapeHtml(text)}</div>`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function storeData(stepId, text) {
+            switch(stepId) {
+                case 'name': state.data.name = text; break;
+                case 'title': state.data.title = text; break;
+                case 'contact': state.data.email = text; break;
+                case 'phone': state.data.phone = text; break;
+                case 'location': state.data.location = text; break;
+                case 'summary': state.data.summary = text; break;
+                case 'experience':
+                    state.currentExperience = {title: text, company: '', date: '', description: ''};
+                    break;
+                case 'exp_company': state.currentExperience.company = text; break;
+                case 'exp_date': state.currentExperience.date = text; break;
+                case 'exp_desc':
+                    state.currentExperience.description = text;
+                    state.data.experience.push({...state.currentExperience});
+                    break;
+                case 'education':
+                    state.currentEducation = {degree: text, school: '', date: ''};
+                    break;
+                case 'edu_school': state.currentEducation.school = text; break;
+                case 'edu_date':
+                    state.currentEducation.date = text;
+                    state.data.education.push({...state.currentEducation});
+                    break;
+                case 'skills':
+                    state.data.skills = text.split(',').map(s => s.trim()).filter(s => s);
+                    break;
+            }
+            updatePreview();
+            calculateATSScore();
+        }
+
+        function analyzeText(text, context) {
+            const feedback = [];
+
+            // Check for weak words
+            weakWords.forEach(word => {
+                if (text.toLowerCase().includes(word)) {
+                    feedback.push(`⚠️ Avoid "${word}" - use action verbs instead`);
+                }
+            });
+
+            // Check for metrics in experience
+            if (context === 'exp_desc') {
+                const hasMetrics = /\d+%|\$\d+|\d+\s*(years|months|people|team|users|customers)/i.test(text);
+                if (!hasMetrics) {
+                    feedback.push('💡 Add metrics (%, $, numbers) to strengthen impact');
+                }
+
+                // Check for action verbs
+                const hasActionVerb = Object.values(actionVerbs).flat().some(verb =>
+                    text.toLowerCase().includes(verb.toLowerCase())
+                );
+                if (!hasActionVerb) {
+                    feedback.push('⚡ Start bullets with action verbs (Led, Increased, Built)');
+                }
+            }
+
+            // Check for keywords in skills
+            if (context === 'skills') {
+                const industryKeywords = atsKeywords[state.industry] || atsKeywords.general;
+                const found = industryKeywords.filter(k => text.toLowerCase().includes(k.toLowerCase()));
+                const missing = industryKeywords.filter(k => !text.toLowerCase().includes(k.toLowerCase()));
+
+                if (found.length < 3) {
+                    feedback.push(`🎯 Add more ${state.industry} keywords (found ${found.length}/${industryKeywords.length})`);
+                }
+            }
+
+            if (feedback.length > 0) {
+                setTimeout(() => {
+                    addBotMessage(feedback.join('\n\n'), [], []);
+                }, 800);
+            }
+        }
+
+        function analyzeInput(text) {
+            // Real-time analysis as user types (could show in tooltip)
+            // For now, just update preview if it's summary or experience
+            if (state.step < flow.length) {
+                const step = flow[state.step];
+                if (step.id === 'summary' || step.id === 'exp_desc') {
+                    // Debounce preview update
+                    clearTimeout(window.previewTimeout);
+                    window.previewTimeout = setTimeout(() => {
+                        if (step.id === 'summary') state.data.summary = text;
+                        if (step.id === 'exp_desc' && state.currentExperience) {
+                            state.currentExperience.description = text;
+                        }
+                        updatePreview();
+                    }, 500);
+                }
+            }
+        }
+
+        function calculateATSScore() {
+            let score = 0;
+            const data = state.data;
+
+            // Basic completeness (40 points)
+            if (data.name) score += 5;
+            if (data.title) score += 5;
+            if (data.email) score += 5;
+            if (data.phone) score += 5;
+            if (data.location) score += 5;
+            if (data.summary) score += 10;
+            if (data.experience.length > 0) score += 10;
+            if (data.education.length > 0) score += 5;
+            if (data.skills.length > 0) score += 5;
+
+            // Content quality (30 points)
+            if (data.summary && data.summary.length > 100) score += 10;
+            if (data.experience.length > 0) {
+                const hasMetrics = data.experience.some(exp =>
+                    /\d+%|\$\d+|\d+\s*(years|months)/i.test(exp.description)
+                );
+                if (hasMetrics) score += 10;
+
+                const hasActionVerbs = data.experience.some(exp =>
+                    Object.values(actionVerbs).flat().some(v =>
+                        exp.description.toLowerCase().includes(v.toLowerCase())
+                    )
+                );
+                if (hasActionVerbs) score += 10;
+            }
+
+            // Keyword matching (30 points)
+            const industryKeywords = atsKeywords[state.industry] || atsKeywords.general;
+            const allText = `${data.summary} ${data.experience.map(e => e.description).join(' ')} ${data.skills.join(' ')}`.toLowerCase();
+            const matches = industryKeywords.filter(k => allText.includes(k.toLowerCase()));
+            score += Math.min(30, matches.length * 3);
+
+            state.atsScore = Math.min(100, score);
+            updateATSPanel(matches, industryKeywords);
+        }
+
+        function updateATSPanel(matches, allKeywords) {
+            const scoreCircle = document.getElementById('scoreCircle');
+            const scoreText = document.getElementById('scoreText');
+            const feedback = document.getElementById('scoreFeedback');
+            const matchesContainer = document.getElementById('keywordMatches');
+
+            scoreCircle.style.setProperty('--score', state.atsScore);
+            scoreText.textContent = state.atsScore;
+
+            // Color coding
+            if (state.atsScore < 50) {
+                scoreCircle.style.background = `conic-gradient(var(--danger) ${state.atsScore}%, #e2e8f0 0)`;
+                feedback.textContent = 'Needs improvement - Add more keywords';
+            } else if (state.atsScore < 80) {
+                scoreCircle.style.background = `conic-gradient(var(--warning) ${state.atsScore}%, #e2e8f0 0)`;
+                feedback.textContent = 'Good start - Keep optimizing';
+            } else {
+                scoreCircle.style.background = `conic-gradient(var(--success) ${state.atsScore}%, #e2e8f0 0)`;
+                feedback.textContent = 'Excellent! ATS optimized';
+            }
+
+            // Show top matches
+            const displayMatches = matches.slice(0, 5);
+            const missing = allKeywords.filter(k => !matches.includes(k)).slice(0, 3);
+
+            let html = '';
+            displayMatches.forEach(m => {
+                html += `<span class="match-tag found">✓ ${m}</span>`;
+            });
+            if (state.atsScore < 80) {
+                missing.forEach(m => {
+                    html += `<span class="match-tag missing">+ ${m}</span>`;
+                });
+            }
+            matchesContainer.innerHTML = html;
         }
 
         function updatePreview() {
             const data = state.data;
             const preview = document.getElementById('resumePreview');
-            if (!preview) return;
 
-            const hasContent = data.name || data.experience.length > 0;
-            if (!hasContent) return;
+            if (!data.name && !data.experience.length) {
+                preview.innerHTML = `
+                    <div style="text-align: center; color: #94a3b8; padding-top: 100px;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">📝</div>
+                        <div>Your ATS-optimized resume will appear here</div>
+                    </div>`;
+                return;
+            }
 
-            let html = '';
-
-            // Header
-            html += `
-                <div class="resume-header">
-                    <div class="resume-name">${escapeHtml(data.name) || 'Your Name'}</div>
-                    <div class="resume-title">${escapeHtml(data.title) || ''}</div>
-                    <div class="resume-contact">
-                        ${data.email ? `<span>${escapeHtml(data.email)}</span>` : ''}
-                        ${data.phone ? `<span>${escapeHtml(data.phone)}</span>` : ''}
-                        ${data.location ? `<span>${escapeHtml(data.location)}</span>` : ''}
+            // ATS-Friendly Template (Single column, standard fonts, no graphics)
+            let html = `
+                <div class="resume-header-ats">
+                    <div class="resume-name-ats">${escapeHtml(data.name) || 'YOUR NAME'}</div>
+                    <div class="resume-contact-ats">
+                        ${data.email ? escapeHtml(data.email) : ''}
+                        ${data.phone ? ' | ' + escapeHtml(data.phone) : ''}
+                        ${data.location ? ' | ' + escapeHtml(data.location) : ''}
                     </div>
                 </div>
             `;
 
-            // Summary
             if (data.summary) {
                 html += `
-                    <div class="resume-section">
-                        <div class="section-title">Professional Summary</div>
-                        <div class="job-description">${escapeHtml(data.summary)}</div>
+                    <div class="section-ats">
+                        <div class="section-title-ats">Professional Summary</div>
+                        <div class="job-desc-ats">${highlightKeywords(escapeHtml(data.summary))}</div>
                     </div>
                 `;
             }
 
-            // Experience
             if (data.experience.length > 0) {
-                html += '<div class="resume-section"><div class="section-title">Experience</div>';
+                html += '<div class="section-ats"><div class="section-title-ats">Professional Experience</div>';
                 data.experience.forEach(exp => {
                     html += `
-                        <div class="job-item">
-                            <div class="job-header">
-                                <span class="job-title">${escapeHtml(exp.title)}</span>
-                                <span class="job-date">${escapeHtml(exp.date)}</span>
+                        <div class="job-item-ats">
+                            <div class="job-header-ats">
+                                <span class="job-title-ats">${escapeHtml(exp.title)}</span>
+                                <span class="job-date-ats">${escapeHtml(exp.date)}</span>
                             </div>
-                            <div class="job-company">${escapeHtml(exp.company)}</div>
-                            <div class="job-description">${escapeHtml(exp.description)}</div>
+                            <div class="job-company-ats">${escapeHtml(exp.company)}</div>
+                            <div class="job-desc-ats">${formatDescription(exp.description)}</div>
                         </div>
                     `;
                 });
                 html += '</div>';
             }
 
-            // Education
             if (data.education.length > 0) {
-                html += '<div class="resume-section"><div class="section-title">Education</div>';
+                html += '<div class="section-ats"><div class="section-title-ats">Education</div>';
                 data.education.forEach(edu => {
                     html += `
-                        <div class="job-item">
-                            <div class="job-header">
-                                <span class="job-title">${escapeHtml(edu.degree)}</span>
-                                <span class="job-date">${escapeHtml(edu.date)}</span>
+                        <div class="job-item-ats">
+                            <div class="job-header-ats">
+                                <span class="job-title-ats">${escapeHtml(edu.degree)}</span>
+                                <span class="job-date-ats">${escapeHtml(edu.date)}</span>
                             </div>
-                            <div class="job-company">${escapeHtml(edu.school)}</div>
+                            <div class="job-company-ats">${escapeHtml(edu.school)}</div>
                         </div>
                     `;
                 });
                 html += '</div>';
             }
 
-            // Skills
             if (data.skills.length > 0) {
                 html += `
-                    <div class="resume-section">
-                        <div class="section-title">Skills</div>
-                        <div class="skills-container">
-                            ${data.skills.map(s => `<span class="skill-tag">${escapeHtml(s)}</span>`).join('')}
+                    <div class="section-ats">
+                        <div class="section-title-ats">Technical Skills</div>
+                        <div class="skills-ats">
+                            ${data.skills.map(s => `<span class="skill-item-ats">${escapeHtml(s)}</span>`).join('')}
                         </div>
                     </div>
                 `;
@@ -1192,124 +1188,100 @@
             preview.innerHTML = html;
         }
 
+        function formatDescription(desc) {
+            if (!desc) return '';
+            // Convert to bullet points if not already
+            if (!desc.includes('•') && !desc.includes('-')) {
+                const sentences = desc.split(/(?<=\.)\s+/).filter(s => s.trim());
+                if (sentences.length > 1) {
+                    return '<ul>' + sentences.map(s => `<li>${highlightKeywords(escapeHtml(s))}</li>`).join('') + '</ul>';
+                }
+            }
+            return highlightKeywords(escapeHtml(desc).replace(/\n/g, '<br>'));
+        }
+
+        function highlightKeywords(text) {
+            // Highlight industry keywords in green
+            const keywords = atsKeywords[state.industry] || atsKeywords.general;
+            let highlighted = text;
+            keywords.forEach(k => {
+                const regex = new RegExp(`\\b${k}\\b`, 'gi');
+                highlighted = highlighted.replace(regex, match => `<span class="strong-text">${match}</span>`);
+            });
+            return highlighted;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function goToStep(stepId) {
+            const index = flow.findIndex(s => s.id === stepId);
+            if (index !== -1) {
+                state.step = index;
+                showStep();
+            }
+        }
+
         function finishResume() {
-            addBotMessage("🎉 Excellent! Your resume is complete! I've compiled everything into a professional format. You can see the preview on the right.");
+            calculateATSScore();
+            addBotMessage(`🎉 Resume Complete! Your ATS Score: ${state.atsScore}/100\n\n${state.atsScore >= 80 ? 'Excellent! Your resume is well-optimized for ATS systems.' : 'Tips to improve: Add more industry keywords, use action verbs, and include metrics.'}\n\nReady to download?`, ['Download PDF', 'Download Word']);
 
-            setTimeout(() => {
-                addBotMessage("Is there anything you'd like to change, or are you ready to download?", [
-                    "Download PDF",
-                    "Download Word",
-                    "Make changes"
-                ]);
-
-                // Set up final handler
-                const skillsIndex = flow.findIndex(s => s.id === 'skills');
-                flow[skillsIndex].handler = (input) => {
-                    if (input.toLowerCase().includes('pdf')) {
-                        downloadPDF();
-                    } else if (input.toLowerCase().includes('word')) {
-                        downloadWord();
-                    } else if (input.toLowerCase().includes('change')) {
-                        addBotMessage("What would you like to change? You can tell me to update any section (name, experience, etc.)");
-                    }
+            // Override for downloads
+            const skillsStep = flow.find(s => s.id === 'skills');
+            if (skillsStep) {
+                skillsStep.handler = (input) => {
+                    if (input.toLowerCase().includes('pdf')) downloadPDF();
+                    else if (input.toLowerCase().includes('word')) downloadWord();
                     return false;
                 };
-            }, 1500);
-
-            const downloadBar = document.getElementById('downloadBar');
-            if (downloadBar) downloadBar.classList.add('active');
+            }
         }
 
         function downloadPDF() {
             const element = document.getElementById('resumePreview');
-            if (!element) return;
-
-            // Check if libraries loaded
-            if (typeof html2canvas === 'undefined' || typeof jspdf === 'undefined') {
-                alert('PDF libraries still loading. Please wait a moment and try again.');
-                return;
-            }
-
-            html2canvas(element, {
-                scale: 2,
-                useCORS: true,
-                logging: false
-            }).then(canvas => {
+            html2canvas(element, {scale: 2}).then(canvas => {
                 const imgData = canvas.toDataURL('image/png');
                 const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = pdf.internal.pageSize.getHeight();
-                const imgWidth = canvas.width;
-                const imgHeight = canvas.height;
-                const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+                const imgWidth = 210;
+                const pageHeight = 297;
+                const imgHeight = canvas.height * imgWidth / canvas.width;
 
-                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth * ratio, imgHeight * ratio);
-                pdf.save(`${state.data.name.replace(/\s+/g, '_') || 'Resume'}_Resume.pdf`);
-
-                addBotMessage("✅ PDF downloaded successfully! Check your downloads folder.");
-            }).catch(err => {
-                console.error('PDF Error:', err);
-                alert('Error generating PDF. Please try again.');
+                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+                pdf.save(`${state.data.name.replace(/\s+/g, '_')}_ATS_Resume.pdf`);
+                addBotMessage('✅ PDF downloaded! Your ATS-optimized resume is ready.');
             });
         }
 
         function downloadWord() {
             const data = state.data;
-            if (!data.name) {
-                alert('Please complete your resume first');
-                return;
-            }
-
             let content = `
-                <h1>${escapeHtml(data.name)}</h1>
-                <p>${escapeHtml(data.title)}</p>
-                <p>${escapeHtml(data.email)} | ${escapeHtml(data.phone)} | ${escapeHtml(data.location)}</p>
+                <h1 style="font-size:18pt; text-transform:uppercase; border-bottom:2px solid #000; padding-bottom:10px;">${data.name}</h1>
+                <p>${data.email} | ${data.phone} | ${data.location}</p>
 
-                <h2>Professional Summary</h2>
-                <p>${escapeHtml(data.summary)}</p>
+                <h2 style="font-size:12pt; text-transform:uppercase; border-bottom:1px solid #000; margin-top:20px;">Professional Summary</h2>
+                <p>${data.summary}</p>
 
-                <h2>Experience</h2>
+                <h2 style="font-size:12pt; text-transform:uppercase; border-bottom:1px solid #000; margin-top:20px;">Experience</h2>
             `;
 
             data.experience.forEach(exp => {
                 content += `
-                    <h3>${escapeHtml(exp.title)} | ${escapeHtml(exp.company)}</h3>
-                    <p>${escapeHtml(exp.date)}</p>
-                    <p>${escapeHtml(exp.description).replace(/\n/g, '<br>')}</p>
+                    <p><strong>${exp.title}</strong> | ${exp.date}<br>
+                    <em>${exp.company}</em></p>
+                    <p>${exp.description}</p>
                 `;
             });
 
-            content += `<h2>Education</h2>`;
-            data.education.forEach(edu => {
-                content += `
-                    <h3>${escapeHtml(edu.degree)}</h3>
-                    <p>${escapeHtml(edu.school)}, ${escapeHtml(edu.date)}</p>
-                `;
-            });
-
-            content += `
-                <h2>Skills</h2>
-                <p>${escapeHtml(data.skills.join(', '))}</p>
-            `;
-
-            const html = `
-                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-                <head><meta charset='utf-8'><title>Resume</title></head>
-                <body>${content}</body>
-                </html>
-            `;
-
-            const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
-            const url = URL.createObjectURL(blob);
+            const blob = new Blob(['\ufeff', content], {type: 'application/msword'});
             const link = document.createElement('a');
-            link.href = url;
-            link.download = `${data.name.replace(/\s+/g, '_') || 'Resume'}_Resume.doc`;
-            document.body.appendChild(link);
+            link.href = URL.createObjectURL(blob);
+            link.download = `${data.name.replace(/\s+/g, '_')}_ATS_Resume.doc`;
             link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-
-            addBotMessage("✅ Word document downloaded! Open it in Microsoft Word.");
+            addBotMessage('✅ Word document downloaded!');
         }
     </script>
 </body>
