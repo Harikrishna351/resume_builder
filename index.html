@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ResumeScanner AI - Smart Resume Analyzer</title>
+    <title>ResumePro AI - Complete Resume Platform</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -11,6 +13,7 @@
         :root {
             --primary: #0f172a;
             --accent: #3b82f6;
+            --accent-light: #60a5fa;
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
@@ -28,78 +31,327 @@
             line-height: 1.6;
         }
 
-        /* Header */
+        /* Navigation */
         .navbar {
             background: var(--primary);
             color: white;
-            padding: 16px 32px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 0 32px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
 
-        .logo { font-size: 24px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-        .nav-links { display: flex; gap: 32px; }
-        .nav-links a { color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 500; transition: color 0.2s; }
-        .nav-links a:hover { color: white; }
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
 
-        /* Main Layout */
-        .container {
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-item {
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            color: rgba(255,255,255,0.8);
+            border: none;
+            background: transparent;
+            font-size: 15px;
+        }
+
+        .nav-item:hover {
+            color: white;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .nav-item.active {
+            color: white;
+            background: rgba(255,255,255,0.15);
+        }
+
+        /* Main Container */
+        .main-container {
             max-width: 1400px;
             margin: 0 auto;
             padding: 40px 32px;
+        }
+
+        /* Tool Sections */
+        .tool-section {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .tool-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .section-header h1 {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--primary);
+        }
+
+        .section-header p {
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Tool Cards Grid */
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 60px;
+        }
+
+        .tool-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            border-color: var(--accent);
+        }
+
+        .tool-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--accent) 0%, #7c3aed 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .tool-card h3 {
+            font-size: 22px;
+            margin-bottom: 12px;
+            color: var(--primary);
+        }
+
+        .tool-card p {
+            color: var(--text-secondary);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        /* Resume Builder Layout */
+        .builder-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            height: calc(100vh - 200px);
+        }
+
+        .builder-panel {
+            background: var(--card);
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header-bar {
+            background: linear-gradient(135deg, var(--primary) 0%, #1e293b 100%);
+            color: white;
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            background: #f8fafc;
+        }
+
+        .message-bubble {
+            max-width: 85%;
+            padding: 16px 20px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .message-ai {
+            background: white;
+            border: 1px solid var(--border);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-user {
+            background: linear-gradient(135deg, var(--accent) 0%, #7c3aed 100%);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+
+        .suggestions-box {
+            margin-top: 12px;
+            margin-left: 12px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .suggestion-chip {
+            display: inline-block;
+            padding: 8px 16px;
+            background: white;
+            border: 2px solid #93c5fd;
+            color: #1e40af;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            margin: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .suggestion-chip:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .input-area-builder {
+            padding: 20px 24px;
+            border-top: 1px solid var(--border);
+            background: white;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 14px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 15px;
+            outline: none;
+            resize: none;
+            min-height: 50px;
+            font-family: inherit;
+        }
+
+        .chat-input:focus {
+            border-color: var(--accent);
+        }
+
+        .send-btn {
+            padding: 14px 28px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Preview Panel */
+        .preview-panel {
+            background: #e5e7eb;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .resume-page-preview {
+            width: 210mm;
+            min-height: 297mm;
+            background: white;
+            margin: 0 auto;
+            padding: 20mm;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            font-family: 'Calibri', 'Arial', sans-serif;
+            font-size: 11pt;
+            line-height: 1.4;
+        }
+
+        /* Scanner Section */
+        .scanner-layout {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 40px;
         }
 
-        /* Input Section */
         .input-panel {
             background: var(--card);
             border-radius: 16px;
             padding: 32px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            height: fit-content;
         }
 
-        .panel-header {
-            margin-bottom: 24px;
-        }
-
-        .panel-header h2 {
+        .input-panel h2 {
             font-size: 24px;
-            font-weight: 700;
             margin-bottom: 8px;
             color: var(--primary);
         }
 
-        .panel-header p {
+        .input-panel p {
             color: var(--text-secondary);
-            font-size: 15px;
+            margin-bottom: 20px;
         }
 
-        .input-area {
-            position: relative;
-        }
-
-        textarea {
+        .resume-textarea {
             width: 100%;
             min-height: 500px;
             padding: 20px;
             border: 2px solid var(--border);
             border-radius: 12px;
-            font-family: 'Inter', sans-serif;
             font-size: 15px;
             line-height: 1.6;
             resize: vertical;
-            transition: all 0.2s;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            font-family: inherit;
         }
 
         .analyze-btn {
@@ -113,23 +365,6 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .analyze-btn:hover {
-            background: #2563eb;
-            transform: translateY(-1px);
-            box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.3);
-        }
-
-        .analyze-btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none;
         }
 
         /* Results Panel */
@@ -139,19 +374,9 @@
             gap: 24px;
         }
 
-        .score-card {
-            background: var(--card);
-            border-radius: 16px;
-            padding: 32px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .score-circle {
-            width: 140px;
-            height: 140px;
+        .score-circle-large {
+            width: 150px;
+            height: 150px;
             border-radius: 50%;
             margin: 0 auto 20px;
             position: relative;
@@ -160,701 +385,835 @@
             justify-content: center;
             font-size: 48px;
             font-weight: 700;
-            color: var(--text);
-            transition: all 0.5s ease;
         }
 
-        .score-circle::before {
+        .score-circle-large::before {
             content: '';
             position: absolute;
-            inset: 8px;
+            width: 120px;
+            height: 120px;
             background: white;
             border-radius: 50%;
-            z-index: 1;
         }
 
-        .score-value {
+        .score-value-large {
             position: relative;
             z-index: 2;
         }
 
-        .score-label {
-            font-size: 14px;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 600;
-        }
-
-        .score-message {
-            margin-top: 16px;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: 500;
-            display: inline-block;
-        }
-
-        .score-message.excellent { background: #d1fae5; color: #065f46; }
-        .score-message.good { background: #fef3c7; color: #92400e; }
-        .score-message.needs-work { background: #fee2e2; color: #991b1b; }
-
-        /* Metrics Grid */
-        .metrics-grid {
+        /* Templates Gallery */
+        .templates-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 32px;
         }
 
-        .metric-card {
-            background: var(--card);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-
-        .metric-value {
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        .metric-value.good { color: var(--success); }
-        .metric-value.warning { color: var(--warning); }
-        .metric-value.danger { color: var(--danger); }
-
-        .metric-label {
-            font-size: 13px;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
-        /* Analysis Section */
-        .analysis-section {
+        .template-card {
             background: var(--card);
             border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .template-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        }
+
+        .template-preview {
+            height: 400px;
+            background: #f1f5f9;
+            padding: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .template-preview::after {
+            content: 'Click to Use Template';
+            position: absolute;
+            inset: 0;
+            background: rgba(59, 130, 246, 0.9);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .template-card:hover .template-preview::after {
+            opacity: 1;
+        }
+
+        .template-info {
             padding: 24px;
+        }
+
+        .template-info h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .template-info p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .template-tags {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .tag {
+            padding: 4px 12px;
+            background: #eff6ff;
+            color: var(--accent);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Job Matcher */
+        .matcher-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        .match-score-display {
+            text-align: center;
+            padding: 40px;
+            background: var(--card);
+            border-radius: 16px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
-        .section-title {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 20px;
+        .keyword-match-list {
             display: flex;
-            align-items: center;
+            flex-wrap: wrap;
             gap: 8px;
+            margin-top: 20px;
         }
 
-        .bullet-item {
-            border-left: 4px solid;
-            padding: 16px 20px;
-            margin-bottom: 12px;
-            background: #f8fafc;
-            border-radius: 0 8px 8px 0;
-            transition: all 0.2s;
-        }
-
-        .bullet-item:hover {
-            transform: translateX(4px);
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-        }
-
-        .bullet-item.excellent { border-left-color: var(--success); }
-        .bullet-item.good { border-left-color: var(--warning); }
-        .bullet-item.needs-improvement { border-left-color: var(--danger); }
-
-        .bullet-text {
-            font-size: 15px;
-            margin-bottom: 8px;
-            line-height: 1.5;
-        }
-
-        .bullet-score {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 12px;
+        .keyword-pill {
+            padding: 6px 14px;
             border-radius: 20px;
             font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .bullet-score.excellent { background: #d1fae5; color: #065f46; }
-        .bullet-score.good { background: #fef3c7; color: #92400e; }
-        .bullet-score.needs-improvement { background: #fee2e2; color: #991b1b; }
-
-        .bullet-feedback {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px dashed var(--border);
-        }
-
-        .suggestion-chip {
-            display: inline-block;
-            padding: 6px 12px;
-            background: #dbeafe;
-            color: #1e40af;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 500;
-            margin: 4px 4px 0 0;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .suggestion-chip:hover {
-            background: var(--accent);
-            color: white;
-        }
-
-        /* Category Breakdown */
-        .category-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .category-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px;
-            background: #f8fafc;
-            border-radius: 10px;
-        }
-
-        .category-name {
-            display: flex;
-            align-items: center;
-            gap: 12px;
             font-weight: 500;
         }
 
-        .category-status {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
+        .keyword-pill.matched {
+            background: #d1fae5;
+            color: #065f46;
         }
 
-        .category-status.pass { background: #d1fae5; color: #065f46; }
-        .category-status.warning { background: #fef3c7; color: #92400e; }
-        .category-status.fail { background: #fee2e2; color: #991b1b; }
-
-        /* Loading State */
-        .loading-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(255,255,255,0.9);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            gap: 20px;
-            z-index: 1000;
+        .keyword-pill.missing {
+            background: #fee2e2;
+            color: #991b1b;
         }
 
-        .loading-overlay.active { display: flex; }
-
-        .spinner {
-            width: 60px;
-            height: 60px;
-            border: 4px solid var(--border);
-            border-top-color: var(--accent);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-
+        /* Utility Classes */
         .hidden { display: none !important; }
 
+        .btn-secondary {
+            padding: 10px 20px;
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .btn-success {
+            padding: 10px 20px;
+            background: var(--success);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
         @media (max-width: 1024px) {
-            .container { grid-template-columns: 1fr; }
+            .builder-layout, .scanner-layout, .matcher-layout {
+                grid-template-columns: 1fr;
+            }
+            .tools-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
 
+    <!-- Navigation -->
     <nav class="navbar">
-        <div class="logo">📄 ResumeScanner AI</div>
-        <div class="nav-links">
-            <a href="#">Score Resume</a>
-            <a href="#">Targeted Resume</a>
-            <a href="#">LinkedIn Review</a>
+        <div class="nav-container">
+            <div class="logo" onclick="showSection('home')">
+                📄 ResumePro AI
+            </div>
+            <div class="nav-menu">
+                <button class="nav-item active" onclick="showSection('home')">Home</button>
+                <button class="nav-item" onclick="showSection('builder')">Resume Builder</button>
+                <button class="nav-item" onclick="showSection('scanner')">Resume Scanner</button>
+                <button class="nav-item" onclick="showSection('matcher')">Job Matcher</button>
+                <button class="nav-item" onclick="showSection('templates')">Templates</button>
+            </div>
         </div>
     </nav>
 
-    <div class="container">
-        <!-- Input Panel -->
-        <div class="input-panel">
-            <div class="panel-header">
-                <h2>Paste Your Resume</h2>
-                <p>We'll analyze your bullet points and give you actionable feedback to improve your resume.</p>
+    <div class="main-container">
+
+        <!-- HOME SECTION -->
+        <section id="home" class="tool-section active">
+            <div class="section-header">
+                <h1>Land Your Dream Job</h1>
+                <p>AI-powered tools to build, scan, and optimize your resume. Trusted by professionals worldwide.</p>
             </div>
 
-            <div class="input-area">
-                <textarea id="resumeInput" placeholder="Paste your resume content here...
-
-Example format:
-• Led team of 5 developers to redesign company website
-• Increased sales revenue by 25% through strategic initiatives
-• Managed marketing campaigns with $500K budget
-
-Or paste your entire resume and we'll extract the bullet points automatically."></textarea>
-
-                <button class="analyze-btn" onclick="analyzeResume()" id="analyzeBtn">
-                    <span>🔍</span> Analyze Resume
-                </button>
-            </div>
-        </div>
-
-        <!-- Results Panel -->
-        <div class="results-panel" id="resultsPanel" style="display: none;">
-
-            <!-- Overall Score -->
-            <div class="score-card">
-                <div class="score-circle" id="scoreCircle" style="background: conic-gradient(var(--border) 0%, var(--border) 100%);">
-                    <span class="score-value" id="scoreValue">--</span>
+            <div class="tools-grid">
+                <div class="tool-card" onclick="showSection('builder')">
+                    <div class="tool-icon">📝</div>
+                    <h3>Resume Builder</h3>
+                    <p>Build a professional resume with AI guidance. Get real-time suggestions and ATS optimization as you type.</p>
                 </div>
-                <div class="score-label">Resume Score</div>
-                <div class="score-message" id="scoreMessage">Paste your resume to get started</div>
-            </div>
 
-            <!-- Quick Metrics -->
-            <div class="metrics-grid">
-                <div class="metric-card">
-                    <div class="metric-value" id="bulletCount">--</div>
-                    <div class="metric-label">Bullet Points</div>
+                <div class="tool-card" onclick="showSection('scanner')">
+                    <div class="tool-icon">🔍</div>
+                    <h3>Resume Scanner</h3>
+                    <p>Score your resume instantly. Get line-by-line feedback on weak words, missing metrics, and impact.</p>
                 </div>
-                <div class="metric-card">
-                    <div class="metric-value" id="weakWordCount">--</div>
-                    <div class="metric-label">Weak Words Found</div>
+
+                <div class="tool-card" onclick="showSection('matcher')">
+                    <div class="tool-icon">🎯</div>
+                    <h3>Job Matcher</h3>
+                    <p>Paste a job description and see how well your resume matches. Get missing keywords and tailoring suggestions.</p>
                 </div>
-                <div class="metric-card">
-                    <div class="metric-value" id="metricCount">--</div>
-                    <div class="metric-label">With Metrics (%$#)</div>
+
+                <div class="tool-card" onclick="showSection('templates')">
+                    <div class="tool-icon">📋</div>
+                    <h3>Templates</h3>
+                    <p>Professional resume templates for every industry. ATS-friendly formats that get past screening systems.</p>
                 </div>
             </div>
 
-            <!-- Category Breakdown -->
-            <div class="analysis-section">
-                <div class="section-title">📊 Category Breakdown</div>
-                <div class="category-list" id="categoryList">
-                    <!-- Populated by JS -->
+            <!-- Stats Section -->
+            <div style="background: var(--primary); color: white; padding: 60px; border-radius: 24px; text-align: center;">
+                <h2 style="font-size: 32px; margin-bottom: 40px;">Trusted by Job Seekers Worldwide</h2>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px;">
+                    <div>
+                        <div style="font-size: 48px; font-weight: 700; color: var(--accent-light);">2M+</div>
+                        <div style="font-size: 18px; opacity: 0.8;">Resumes Built</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 48px; font-weight: 700; color: var(--accent-light);">85%</div>
+                        <div style="font-size: 18px; opacity: 0.8;">Interview Success Rate</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 48px; font-weight: 700; color: var(--accent-light);">500+</div>
+                        <div style="font-size: 18px; opacity: 0.8;">Company Templates</div>
+                    </div>
                 </div>
             </div>
+        </section>
 
-            <!-- Bullet Analysis -->
-            <div class="analysis-section">
-                <div class="section-title">📝 Bullet Point Analysis</div>
-                <div id="bulletAnalysis">
-                    <!-- Populated by JS -->
-                </div>
+        <!-- RESUME BUILDER SECTION -->
+        <section id="builder" class="tool-section">
+            <div class="section-header">
+                <h1>AI Resume Builder</h1>
+                <p>Answer a few questions and get a professionally formatted resume.</p>
             </div>
 
-            <!-- Improvement Suggestions -->
-            <div class="analysis-section">
-                <div class="section-title">💡 Suggested Improvements</div>
-                <div id="improvementSuggestions">
-                    <!-- Populated by JS -->
+            <div class="builder-layout">
+                <div class="builder-panel">
+                    <div class="panel-header-bar">
+                        <div>
+                            <div style="font-weight: 600;">💬 Resume Assistant</div>
+                            <div style="font-size: 13px; opacity: 0.8;">Step <span id="builderStep">1</span> of 10</div>
+                        </div>
+                        <button onclick="resetBuilder()" style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Reset</button>
+                    </div>
+
+                    <div class="chat-area" id="builderChat">
+                        <!-- Chat messages appear here -->
+                    </div>
+
+                    <div class="input-area-builder">
+                        <div class="input-row">
+                            <textarea class="chat-input" id="builderInput" placeholder="Type your response..." rows="1"></textarea>
+                            <button class="send-btn" onclick="builderSend()">Send</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="preview-panel">
+                    <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="font-size: 18px;">Live Preview</h3>
+                        <div>
+                            <button class="btn-secondary" onclick="builderDownloadWord()">💾 Word</button>
+                            <button class="btn-success" onclick="builderDownloadPDF()" style="margin-left: 8px;">📄 PDF</button>
+                        </div>
+                    </div>
+                    <div class="resume-page-preview" id="builderPreview">
+                        <div style="text-align: center; color: #9ca3af; padding-top: 100px;">
+                            <div style="font-size: 48px; margin-bottom: 20px;">📄</div>
+                            <p>Your resume will appear here</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
+        </section>
 
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="spinner"></div>
-        <p style="font-size: 18px; font-weight: 600; color: var(--text);">Analyzing your resume...</p>
-        <p style="color: var(--text-secondary);">Checking for weak words, metrics, and impact</p>
+        <!-- RESUME SCANNER SECTION -->
+        <section id="scanner" class="tool-section">
+            <div class="section-header">
+                <h1>Resume Scanner</h1>
+                <p>Get instant feedback on your resume's impact and ATS compatibility.</p>
+            </div>
+
+            <div class="scanner-layout">
+                <div class="input-panel">
+                    <h2>Paste Your Resume</h2>
+                    <p>We'll analyze your bullet points and give you actionable feedback.</p>
+                    <textarea class="resume-textarea" id="scanInput" placeholder="Paste your resume content here...
+
+Example:
+• Led team of 5 developers to redesign website
+• Increased sales revenue by 25%
+• Managed marketing campaigns with $500K budget"></textarea>
+                    <button class="analyze-btn" onclick="scanResume()">🔍 Analyze Resume</button>
+                </div>
+
+                <div class="results-panel" id="scanResults" style="display: none;">
+                    <!-- Score Circle -->
+                    <div style="background: var(--card); padding: 40px; border-radius: 16px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                        <div class="score-circle-large" id="scanScoreCircle" style="background: conic-gradient(#e2e8f0 0%, #e2e8f0 100%);">
+                            <span class="score-value-large" id="scanScoreValue">--</span>
+                        </div>
+                        <div style="font-size: 14px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Resume Score</div>
+                        <div id="scanScoreMessage" style="margin-top: 16px; padding: 12px 24px; border-radius: 8px; font-weight: 600; display: inline-block;"></div>
+                    </div>
+
+                    <!-- Analysis Results -->
+                    <div style="background: var(--card); padding: 24px; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                        <h3 style="margin-bottom: 20px; font-size: 20px;">📊 Detailed Analysis</h3>
+                        <div id="scanAnalysisContent"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- JOB MATCHER SECTION -->
+        <section id="matcher" class="tool-section">
+            <div class="section-header">
+                <h1>Job Description Matcher</h1>
+                <p>See how well your resume matches a specific job posting.</p>
+            </div>
+
+            <div class="matcher-layout">
+                <div>
+                    <div class="input-panel" style="margin-bottom: 20px;">
+                        <h2>Your Resume</h2>
+                        <textarea class="resume-textarea" id="matchResumeInput" style="min-height: 200px;" placeholder="Paste your resume..."></textarea>
+                    </div>
+                    <div class="input-panel">
+                        <h2>Job Description</h2>
+                        <textarea class="resume-textarea" id="matchJobInput" style="min-height: 200px;" placeholder="Paste the job description..."></textarea>
+                        <button class="analyze-btn" onclick="matchJob()">🎯 Calculate Match</button>
+                    </div>
+                </div>
+
+                <div class="match-score-display" id="matchResults" style="display: none;">
+                    <div class="score-circle-large" id="matchScoreCircle" style="background: conic-gradient(var(--accent) 0%, var(--accent) 0%); margin-bottom: 20px;">
+                        <span class="score-value-large" id="matchScoreValue">0%</span>
+                    </div>
+                    <h2 style="margin-bottom: 16px;">Match Score</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 24px;">Your resume matches <span id="matchPercent">0%</span> of the job requirements</p>
+
+                    <div style="text-align: left;">
+                        <h3 style="margin-bottom: 12px; font-size: 16px;">Keywords Found:</h3>
+                        <div class="keyword-match-list" id="matchKeywords"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TEMPLATES SECTION -->
+        <section id="templates" class="tool-section">
+            <div class="section-header">
+                <h1>Professional Templates</h1>
+                <p>ATS-friendly templates that get past screening systems.</p>
+            </div>
+
+            <div class="templates-grid" id="templatesGrid">
+                <!-- Templates populated by JS -->
+            </div>
+        </section>
+
     </div>
 
     <script>
-        // Resume Worded-style Analysis Logic
-        const AnalysisEngine = {
-            // Weak words that Resume Worded flags
-            weakWords: [
-                'responsible for', 'responsible', 'duties included', 'helped', 'assisted',
-                'worked on', 'participated in', 'involved in', 'handled', 'took care of',
-                'was tasked with', 'tasked with', 'in charge of', 'served as', 'acted as',
-                'dealt with', 'worked with', 'collaborated with', 'supported', 'aided',
-                'contributed to', 'played a role in', 'assisted with', 'helped with'
-            ],
+        // Navigation
+        function showSection(sectionId) {
+            document.querySelectorAll('.tool-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 
-            // Strong action verbs categorized
-            strongVerbs: {
-                leadership: ['Led', 'Managed', 'Directed', 'Supervised', 'Guided', 'Mentored', 'Trained', 'Coordinated'],
-                achievement: ['Achieved', 'Exceeded', 'Surpassed', 'Outperformed', 'Delivered', 'Attained', 'Secured'],
-                creation: ['Created', 'Developed', 'Designed', 'Built', 'Implemented', 'Established', 'Launched', 'Pioneered'],
-                improvement: ['Improved', 'Enhanced', 'Optimized', 'Streamlined', 'Refined', 'Upgraded', 'Transformed', 'Revamped'],
-                analysis: ['Analyzed', 'Evaluated', 'Assessed', 'Examined', 'Investigated', 'Researched', 'Audited'],
-                communication: ['Presented', 'Negotiated', 'Collaborated', 'Facilitated', 'Liaised', 'Authored', 'Composed']
+            document.getElementById(sectionId).classList.add('active');
+            event.target.classList.add('active');
+
+            if (sectionId === 'builder') initBuilder();
+            if (sectionId === 'templates') initTemplates();
+        }
+
+        // ==================== RESUME BUILDER ====================
+        let builderState = {
+            step: 0,
+            data: { name: '', title: '', email: '', phone: '', location: '', summary: '', experience: [], education: [], skills: [] },
+            currentExp: null
+        };
+
+        const builderSteps = [
+            {
+                question: "What job title are you targeting?",
+                suggestions: ['Software Engineer', 'Marketing Manager', 'Product Manager', 'Sales Representative', 'Data Analyst'],
+                field: 'targetRole'
             },
-
-            // All strong verbs combined
-            allStrongVerbs: function() {
-                return Object.values(this.strongVerbs).flat();
+            {
+                question: "What's your full name?",
+                field: 'name'
             },
-
-            // Check if bullet starts with strong verb
-            startsWithStrongVerb: function(text) {
-                const firstWord = text.trim().split(/\s+/)[0].replace(/[^a-zA-Z]/g, '');
-                return this.allStrongVerbs().some(verb =>
-                    verb.toLowerCase() === firstWord.toLowerCase()
-                );
+            {
+                question: "Your professional title?",
+                suggestions: ['Senior Software Engineer', 'Marketing Director', 'Product Manager'],
+                field: 'title'
             },
-
-            // Get verb suggestion
-            suggestStrongVerb: function(text) {
-                const verbs = this.allStrongVerbs();
-                // Return 3 random strong verbs as suggestions
-                return verbs.sort(() => 0.5 - Math.random()).slice(0, 3);
+            {
+                question: "Email address?",
+                field: 'email'
             },
-
-            // Check for metrics (numbers, %, $, etc.)
-            hasMetrics: function(text) {
-                return /\d+%|\$\d+|\d+\s*(million|thousand|hundred|k|m)|\d+\s*(users|customers|clients|team members|people|years|months|weeks|days)|increased by \d+|decreased by \d+|improved by \d+/i.test(text);
+            {
+                question: "Phone number?",
+                field: 'phone'
             },
-
-            // Extract metrics
-            extractMetrics: function(text) {
-                const matches = text.match(/\d+%|\$\d+[kmb]?|\d+\s*(million|thousand|hundred|k|m)|\d+\s*(users|customers|clients|team members)/gi) || [];
-                return matches;
+            {
+                question: "Location?",
+                suggestions: ['New York, NY', 'San Francisco, CA', 'Remote'],
+                field: 'location'
             },
-
-            // Check for weak words
-            findWeakWords: function(text) {
-                return this.weakWords.filter(word =>
-                    text.toLowerCase().includes(word.toLowerCase())
-                );
+            {
+                question: "Professional Summary - 2-3 sentences about your experience:",
+                isParagraph: true,
+                suggestions: [
+                    "Results-driven Software Engineer with 5+ years of experience designing scalable applications and implementing efficient solutions.",
+                    "Innovative Marketing Manager with 6+ years of experience developing data-driven campaigns that increased revenue by 40%."
+                ],
+                field: 'summary'
             },
+            {
+                question: "Most recent job title?",
+                onComplete: (val) => { builderState.currentExp = {title: val, company: '', date: '', description: ''}; }
+            },
+            {
+                question: "Company name?",
+                onComplete: (val) => { builderState.currentExp.company = val; }
+            },
+            {
+                question: "Dates employed?",
+                onComplete: (val) => { builderState.currentExp.date = val; }
+            },
+            {
+                question: "Key achievements (use bullet points):",
+                isParagraph: true,
+                suggestions: [
+                    "• Led team of 5 developers to redesign website\n• Increased site speed by 40%\n• Implemented automated testing",
+                    "• Managed $500K marketing budget\n• Achieved 150% ROI\n• Grew social media following by 200%"
+                ],
+                onComplete: (val) => {
+                    builderState.currentExp.description = val;
+                    builderState.data.experience.push({...builderState.currentExp});
+                }
+            },
+            {
+                question: "Add another position?",
+                options: ['Yes, add another', 'No, continue'],
+                handler: (val) => {
+                    if (val.includes('Yes')) {
+                        builderState.step = 7;
+                        return true;
+                    }
+                    return true;
+                }
+            },
+            {
+                question: "Highest degree?",
+                onComplete: (val) => { builderState.data.education.push({degree: val, school: '', date: ''}); }
+            },
+            {
+                question: "University?",
+                onComplete: (val) => { builderState.data.education[builderState.data.education.length-1].school = val; }
+            },
+            {
+                question: "Graduation year?",
+                onComplete: (val) => { builderState.data.education[builderState.data.education.length-1].date = val; }
+            },
+            {
+                question: "Skills (comma separated):",
+                suggestions: ['JavaScript, React, Node.js, Python', 'Project Management, Leadership, Communication'],
+                field: 'skills'
+            }
+        ];
 
-            // Calculate bullet score (0-100)
-            scoreBullet: function(text) {
-                let score = 50; // Base score
-                const issues = [];
-                const strengths = [];
+        function initBuilder() {
+            if (builderState.step === 0) {
+                renderBuilderStep();
+            }
+        }
 
-                // Check length (Resume Worded prefers 1-2 lines)
-                const wordCount = text.split(/\s+/).length;
-                if (wordCount < 8) {
-                    score -= 10;
-                    issues.push('Too short - add more detail');
-                } else if (wordCount > 25) {
-                    score -= 5;
-                    issues.push('Consider making this more concise');
+        function renderBuilderStep() {
+            const chat = document.getElementById('builderChat');
+            const step = builderSteps[builderState.step];
+
+            document.getElementById('builderStep').textContent = builderState.step + 1;
+
+            // Add AI message
+            const msg = document.createElement('div');
+            msg.className = 'message-bubble message-ai';
+            msg.innerHTML = `<strong>Step ${builderState.step + 1}</strong><br><br>${step.question}`;
+            chat.appendChild(msg);
+
+            // Add suggestions
+            if (step.suggestions || step.options) {
+                const sugDiv = document.createElement('div');
+                sugDiv.className = 'suggestions-box';
+                let items = step.suggestions || step.options;
+                sugDiv.innerHTML = items.map(s =>
+                    `<span class="suggestion-chip" onclick="useBuilderSuggestion('${s.replace(/'/g, "\\'")}')">${s}</span>`
+                ).join('');
+                chat.appendChild(sugDiv);
+            }
+
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function useBuilderSuggestion(text) {
+            document.getElementById('builderInput').value = text;
+        }
+
+        function builderSend() {
+            const input = document.getElementById('builderInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const chat = document.getElementById('builderChat');
+            const step = builderSteps[builderState.step];
+
+            // Add user message
+            const userMsg = document.createElement('div');
+            userMsg.className = 'message-bubble message-user';
+            userMsg.textContent = text;
+            chat.appendChild(userMsg);
+
+            input.value = '';
+
+            // Process
+            if (step.field) {
+                if (step.field === 'skills') {
+                    builderState.data.skills = text.split(',').map(s => s.trim());
                 } else {
-                    score += 5;
-                    strengths.push('Good length');
+                    builderState.data[step.field] = text;
                 }
+            }
+            if (step.onComplete) step.onComplete(text);
 
-                // Check for strong verb
-                if (this.startsWithStrongVerb(text)) {
-                    score += 20;
-                    strengths.push('Strong action verb');
+            let advance = true;
+            if (step.handler) advance = step.handler(text);
+
+            if (advance) {
+                builderState.step++;
+                if (builderState.step < builderSteps.length) {
+                    setTimeout(renderBuilderStep, 500);
                 } else {
-                    score -= 15;
-                    issues.push('Start with a strong action verb (Led, Managed, Created, etc.)');
+                    builderComplete();
                 }
+            }
 
-                // Check for metrics
-                if (this.hasMetrics(text)) {
-                    score += 25;
-                    strengths.push('Contains quantifiable metrics');
-                } else {
-                    score -= 20;
-                    issues.push('Add metrics (%, $, #) to show impact');
-                }
+            updateBuilderPreview();
+            chat.scrollTop = chat.scrollHeight;
+        }
 
-                // Check for weak words
-                const weakWordsFound = this.findWeakWords(text);
-                if (weakWordsFound.length > 0) {
-                    score -= 15;
-                    issues.push(`Remove weak words: "${weakWordsFound.join(', ')}"`);
-                }
+        function updateBuilderPreview() {
+            const d = builderState.data;
+            const preview = document.getElementById('builderPreview');
 
-                // Check for repetition (simplified)
-                if (text.toLowerCase().includes('various') || text.toLowerCase().includes('different')) {
-                    score -= 5;
-                    issues.push('Be specific instead of using "various" or "different"');
-                }
+            if (!d.name) return;
 
-                return {
-                    score: Math.max(0, Math.min(100, score)),
-                    grade: score >= 80 ? 'excellent' : score >= 60 ? 'good' : 'needs-improvement',
-                    issues: issues,
-                    strengths: strengths,
-                    metrics: this.extractMetrics(text),
-                    weakWords: weakWordsFound,
-                    suggestedVerbs: this.suggestStrongVerb(text)
-                };
-            },
+            let html = `
+                <div style="border-bottom: 2px solid #000; padding-bottom: 16px; margin-bottom: 20px;">
+                    <div style="font-size: 24px; font-weight: bold; text-transform: uppercase;">${d.name}</div>
+                    <div style="font-size: 14px; color: #374151; margin-top: 8px;">
+                        ${d.email || ''} ${d.phone ? '• ' + d.phone : ''} ${d.location ? '• ' + d.location : ''}
+                    </div>
+                </div>
+            `;
 
-            // Analyze full resume
-            analyze: function(text) {
-                // Extract bullet points (lines starting with •, -, or *)
-                const lines = text.split('\n').filter(line => line.trim());
-                const bullets = lines.filter(line =>
-                    /^[\s]*[•\-*]\s+/.test(line) ||
-                    (line.trim().length > 20 && !line.includes(':'))
-                ).map(line => line.replace(/^[\s]*[•\-*]\s*/, '').trim());
+            if (d.summary) {
+                html += `<div style="margin-bottom: 20px;">
+                    <div style="font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 4px; margin-bottom: 8px;">Professional Summary</div>
+                    <div>${d.summary.replace(/\n/g, '<br>')}</div>
+                </div>`;
+            }
 
-                // If no bullets found, treat non-empty lines as bullets
-                const bulletPoints = bullets.length > 0 ? bullets : lines.filter(l => l.trim().length > 10);
+            if (d.experience.length > 0) {
+                html += `<div style="margin-bottom: 20px;">
+                    <div style="font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 4px; margin-bottom: 8px;">Experience</div>`;
+                d.experience.forEach(exp => {
+                    html += `<div style="margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; font-weight: bold;">
+                            <span>${exp.title}</span>
+                            <span style="font-weight: normal; font-style: italic;">${exp.date}</span>
+                        </div>
+                        <div style="font-style: italic; color: #4b5563;">${exp.company}</div>
+                        <div style="margin-top: 4px;">${exp.description ? exp.description.replace(/\n/g, '<br>') : ''}</div>
+                    </div>`;
+                });
+                html += `</div>`;
+            }
 
-                const results = bulletPoints.map(bullet => ({
-                    text: bullet,
-                    analysis: this.scoreBullet(bullet)
-                }));
+            if (d.education.length > 0) {
+                html += `<div style="margin-bottom: 20px;">
+                    <div style="font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 4px; margin-bottom: 8px;">Education</div>`;
+                d.education.forEach(edu => {
+                    html += `<div style="margin-bottom: 8px;">
+                        <div style="display: flex; justify-content: space-between; font-weight: bold;">
+                            <span>${edu.degree}</span>
+                            <span style="font-weight: normal; font-style: italic;">${edu.date}</span>
+                        </div>
+                        <div style="font-style: italic; color: #4b5563;">${edu.school}</div>
+                    </div>`;
+                });
+                html += `</div>`;
+            }
 
-                // Calculate overall score
-                const avgScore = results.length > 0
-                    ? results.reduce((sum, r) => sum + r.analysis.score, 0) / results.length
-                    : 0;
+            if (d.skills.length > 0) {
+                html += `<div>
+                    <div style="font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 4px; margin-bottom: 8px;">Skills</div>
+                    <div>${d.skills.join(' • ')}</div>
+                </div>`;
+            }
 
-                // Category checks
-                const categories = {
-                    actionVerbs: results.filter(r => r.analysis.strengths.includes('Strong action verb')).length,
-                    metrics: results.filter(r => r.analysis.strengths.includes('Contains quantifiable metrics')).length,
-                    weakWords: results.filter(r => r.analysis.weakWords.length > 0).length,
-                    length: results.filter(r => r.analysis.issues.some(i => i.includes('Too short'))).length
-                };
+            preview.innerHTML = html;
+        }
+
+        function builderComplete() {
+            const chat = document.getElementById('builderChat');
+            const msg = document.createElement('div');
+            msg.className = 'message-bubble message-ai';
+            msg.innerHTML = '<strong>🎉 Resume Complete!</strong><br>Your resume is ready. Download using the buttons above.';
+            chat.appendChild(msg);
+        }
+
+        function builderDownloadPDF() {
+            const element = document.getElementById('builderPreview');
+            html2canvas(element, {scale: 2}).then(canvas => {
+                const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+                pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
+                pdf.save('Resume.pdf');
+            });
+        }
+
+        function builderDownloadWord() {
+            // Simplified Word download
+            const d = builderState.data;
+            let content = `<h1>${d.name}</h1><p>${d.email}</p><h2>Summary</h2><p>${d.summary}</p>`;
+            const blob = new Blob(['\ufeff', content], {type: 'application/msword'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'Resume.doc';
+            a.click();
+        }
+
+        function resetBuilder() {
+            builderState = {step: 0, data: {name: '', title: '', email: '', phone: '', location: '', summary: '', experience: [], education: [], skills: []}, currentExp: null};
+            document.getElementById('builderChat').innerHTML = '';
+            document.getElementById('builderPreview').innerHTML = '<div style="text-align: center; color: #9ca3af; padding-top: 100px;"><div style="font-size: 48px; margin-bottom: 20px;">📄</div><p>Your resume will appear here</p></div>';
+            renderBuilderStep();
+        }
+
+        // ==================== RESUME SCANNER ====================
+        const ScannerEngine = {
+            weakWords: ['responsible for', 'helped', 'assisted', 'worked on', 'participated in', 'handled', 'duties included'],
+            strongVerbs: ['Led', 'Managed', 'Created', 'Developed', 'Implemented', 'Increased', 'Reduced', 'Improved'],
+
+            analyze(text) {
+                const bullets = text.split('\n').filter(l => l.trim().startsWith('•') || l.trim().startsWith('-') || (l.trim().length > 20 && !l.includes(':')));
+                const cleanBullets = bullets.map(b => b.replace(/^[•\-]\s*/, '').trim()).filter(b => b.length > 10);
+
+                const results = cleanBullets.map(bullet => {
+                    let score = 50;
+                    const issues = [];
+                    const strengths = [];
+
+                    // Check verb
+                    const firstWord = bullet.split(' ')[0].replace(/[^a-zA-Z]/g, '');
+                    if (this.strongVerbs.includes(firstWord)) {
+                        score += 20;
+                        strengths.push('Strong action verb');
+                    } else {
+                        score -= 15;
+                        issues.push('Start with strong action verb');
+                    }
+
+                    // Check metrics
+                    if (/\d|%|\$/.test(bullet)) {
+                        score += 25;
+                        strengths.push('Contains metrics');
+                    } else {
+                        score -= 20;
+                        issues.push('Add quantifiable metrics');
+                    }
+
+                    // Check weak words
+                    const weak = this.weakWords.filter(w => bullet.toLowerCase().includes(w));
+                    if (weak.length > 0) {
+                        score -= 15;
+                        issues.push(`Remove weak words: ${weak.join(', ')}`);
+                    }
+
+                    return {text: bullet, score: Math.max(0, Math.min(100, score)), grade: score >= 80 ? 'excellent' : score >= 60 ? 'good' : 'needs-improvement', issues, strengths};
+                });
+
+                const avgScore = results.length > 0 ? results.reduce((a, b) => a + b.score, 0) / results.length : 0;
 
                 return {
                     overallScore: Math.round(avgScore),
-                    bulletCount: results.length,
                     bullets: results,
-                    categories: categories,
-                    totalWeakWords: results.reduce((sum, r) => sum + r.analysis.weakWords.length, 0),
-                    totalMetrics: results.filter(r => r.analysis.metrics.length > 0).length
+                    totalBullets: results.length,
+                    withMetrics: results.filter(r => r.strengths.includes('Contains metrics')).length,
+                    weakWordCount: results.filter(r => r.issues.some(i => i.includes('weak words'))).length
                 };
             }
         };
 
-        async function analyzeResume() {
-            const input = document.getElementById('resumeInput');
-            const text = input.value.trim();
+        function scanResume() {
+            const text = document.getElementById('scanInput').value;
+            if (!text) return;
 
-            if (!text) {
-                alert('Please paste your resume content first');
-                return;
-            }
+            const results = ScannerEngine.analyze(text);
 
-            // Show loading
-            document.getElementById('loadingOverlay').classList.add('active');
-
-            // Simulate processing delay (like Resume Worded)
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            // Run analysis
-            const results = AnalysisEngine.analyze(text);
-
-            // Hide loading
-            document.getElementById('loadingOverlay').classList.remove('active');
-
-            // Show results
-            document.getElementById('resultsPanel').style.display = 'flex';
-
-            // Update score
-            updateScoreDisplay(results.overallScore);
-
-            // Update metrics
-            document.getElementById('bulletCount').textContent = results.bulletCount;
-            document.getElementById('bulletCount').className = 'metric-value ' + (results.bulletCount >= 3 ? 'good' : 'warning');
-
-            document.getElementById('weakWordCount').textContent = results.totalWeakWords;
-            document.getElementById('weakWordCount').className = 'metric-value ' + (results.totalWeakWords === 0 ? 'good' : results.totalWeakWords < 3 ? 'warning' : 'danger');
-
-            document.getElementById('metricCount').textContent = results.totalMetrics + '/' + results.bulletCount;
-            document.getElementById('metricCount').className = 'metric-value ' + (results.totalMetrics >= results.bulletCount * 0.7 ? 'good' : 'warning');
-
-            // Render categories
-            renderCategories(results);
-
-            // Render bullet analysis
-            renderBulletAnalysis(results.bullets);
-
-            // Render suggestions
-            renderSuggestions(results.bullets);
-
-            // Scroll to results
-            document.getElementById('resultsPanel').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function updateScoreDisplay(score) {
-            const circle = document.getElementById('scoreCircle');
-            const value = document.getElementById('scoreValue');
-            const message = document.getElementById('scoreMessage');
+            document.getElementById('scanResults').style.display = 'flex';
 
             // Animate score
-            let current = 0;
-            const increment = score / 50;
-            const timer = setInterval(() => {
-                current += increment;
-                if (current >= score) {
-                    current = score;
-                    clearInterval(timer);
-                }
-                value.textContent = Math.round(current);
+            const circle = document.getElementById('scanScoreCircle');
+            const value = document.getElementById('scanScoreValue');
+            const message = document.getElementById('scanScoreMessage');
 
-                // Update circle color based on score
-                let color = '#ef4444'; // red
-                let messageClass = 'needs-work';
-                let messageText = 'Needs Improvement';
+            let color = results.overallScore >= 80 ? '#10b981' : results.overallScore >= 60 ? '#f59e0b' : '#ef4444';
+            let msgText = results.overallScore >= 80 ? 'Excellent!' : results.overallScore >= 60 ? 'Good, can improve' : 'Needs Work';
+            let msgClass = results.overallScore >= 80 ? 'excellent' : results.overallScore >= 60 ? 'good' : 'needs-work';
 
-                if (score >= 80) {
-                    color = '#10b981'; // green
-                    messageClass = 'excellent';
-                    messageText = 'Excellent! ATS Ready';
-                } else if (score >= 60) {
-                    color = '#f59e0b'; // yellow
-                    messageClass = 'good';
-                    messageText = 'Good, but can be improved';
-                }
+            circle.style.background = `conic-gradient(${color} ${results.overallScore * 3.6}deg, #e2e8f0 0deg)`;
+            value.textContent = results.overallScore;
+            message.textContent = msgText;
+            message.className = msgClass;
+            message.style.cssText = `display: inline-block; padding: 12px 24px; border-radius: 8px; font-weight: 600; background: ${results.overallScore >= 80 ? '#d1fae5' : results.overallScore >= 60 ? '#fef3c7' : '#fee2e2'}; color: ${results.overallScore >= 80 ? '#065f46' : results.overallScore >= 60 ? '#92400e' : '#991b1b'}`;
 
-                circle.style.background = `conic-gradient(${color} ${(current / 100) * 360}deg, #e2e8f0 0deg)`;
-                message.className = 'score-message ' + messageClass;
-                message.textContent = messageText;
-            }, 20);
-        }
-
-        function renderCategories(results) {
-            const container = document.getElementById('categoryList');
-
-            const categories = [
-                { name: 'Strong Action Verbs', icon: '⚡', pass: results.categories.actionVerbs >= results.bulletCount * 0.8 },
-                { name: 'Quantifiable Metrics', icon: '📊', pass: results.categories.metrics >= results.bulletCount * 0.7 },
-                { name: 'No Weak Words', icon: '✓', pass: results.categories.weakWords === 0 },
-                { name: 'Optimal Length', icon: '📝', pass: results.categories.length === 0 }
-            ];
-
-            container.innerHTML = categories.map(cat => `
-                <div class="category-item">
-                    <div class="category-name">
-                        <span style="font-size: 20px;">${cat.icon}</span>
-                        <span>${cat.name}</span>
+            // Render analysis
+            const container = document.getElementById('scanAnalysisContent');
+            container.innerHTML = results.bullets.map(b => `
+                <div style="margin-bottom: 16px; padding: 16px; background: #f8fafc; border-radius: 8px; border-left: 4px solid ${b.score >= 80 ? '#10b981' : b.score >= 60 ? '#f59e0b' : '#ef4444'};">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="font-weight: 600;">${b.score}/100</span>
                     </div>
-                    <div class="category-status ${cat.pass ? 'pass' : 'fail'}">
-                        ${cat.pass ? '✓ Pass' : '✗ Needs Work'}
+                    <div style="margin-bottom: 8px;">${b.text}</div>
+                    <div style="font-size: 14px; color: #6b7280;">
+                        ${b.strengths.map(s => `<span style="color: #059669;">✓ ${s}</span>`).join(' ')}
+                        ${b.issues.map(i => `<span style="color: #dc2626;">• ${i}</span>`).join(' ')}
                     </div>
                 </div>
             `).join('');
         }
 
-        function renderBulletAnalysis(bullets) {
-            const container = document.getElementById('bulletAnalysis');
+        // ==================== JOB MATCHER ====================
+        function matchJob() {
+            const resume = document.getElementById('matchResumeInput').value.toLowerCase();
+            const job = document.getElementById('matchJobInput').value.toLowerCase();
 
-            if (bullets.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-secondary);">No bullet points detected. Try formatting with • or - at the start of each line.</p>';
-                return;
-            }
+            if (!resume || !job) return;
 
-            container.innerHTML = bullets.map((item, index) => {
-                const analysis = item.analysis;
-                const scoreClass = analysis.grade;
+            // Extract keywords from job description
+            const commonKeywords = ['python', 'javascript', 'react', 'node', 'sql', 'aws', 'marketing', 'sales', 'leadership', 'communication', 'analysis', 'management', 'strategy'];
+            const found = commonKeywords.filter(k => job.includes(k));
+            const inResume = found.filter(k => resume.includes(k));
 
-                let feedbackHtml = '';
+            const matchPercent = found.length > 0 ? Math.round((inResume.length / found.length) * 100) : 0;
 
-                if (analysis.strengths.length > 0) {
-                    feedbackHtml += `<div style="color: var(--success); margin-bottom: 4px;">✓ ${analysis.strengths.join(', ')}</div>`;
-                }
+            document.getElementById('matchResults').style.display = 'block';
+            document.getElementById('matchScoreValue').textContent = matchPercent + '%';
+            document.getElementById('matchPercent').textContent = matchPercent + '%';
+            document.getElementById('matchScoreCircle').style.background = `conic-gradient(${matchPercent >= 70 ? '#10b981' : matchPercent >= 40 ? '#f59e0b' : '#ef4444'} ${matchPercent * 3.6}deg, #e2e8f0 0deg)`;
 
-                if (analysis.issues.length > 0) {
-                    feedbackHtml += analysis.issues.map(issue =>
-                        `<div style="color: var(--danger); margin-bottom: 4px;">• ${issue}</div>`
-                    ).join('');
-                }
+            document.getElementById('matchKeywords').innerHTML = found.map(k =>
+                `<span class="keyword-pill ${inResume.includes(k) ? 'matched' : 'missing'}">${inResume.includes(k) ? '✓' : '+'} ${k}</span>`
+            ).join('');
+        }
 
-                if (analysis.suggestedVerbs.length > 0 && analysis.grade !== 'excellent') {
-                    feedbackHtml += `<div style="margin-top: 8px; font-size: 13px; color: var(--text-secondary);">
-                        <strong>Suggested verbs:</strong> ${analysis.suggestedVerbs.join(', ')}
-                    </div>`;
-                }
+        // ==================== TEMPLATES ====================
+        const templates = [
+            {name: 'Modern Professional', industry: 'Corporate', tags: ['ATS Friendly', 'Clean']},
+            {name: 'Tech Focused', industry: 'Technology', tags: ['Minimal', 'Skills Highlight']},
+            {name: 'Creative Portfolio', industry: 'Marketing', tags: ['Visual', 'Modern']},
+            {name: 'Executive Classic', industry: 'Executive', tags: ['Traditional', 'Formal']},
+            {name: 'Entry Level', industry: 'General', tags: ['Simple', 'Education Focus']},
+            {name: 'Project Manager', industry: 'Management', tags: ['Results Focused', 'Timeline']}
+        ];
 
-                return `
-                    <div class="bullet-item ${scoreClass}">
-                        <div class="bullet-score ${scoreClass}">
-                            ${analysis.score}/100
+        function initTemplates() {
+            const grid = document.getElementById('templatesGrid');
+            grid.innerHTML = templates.map(t => `
+                <div class="template-card" onclick="useTemplate('${t.name}')">
+                    <div class="template-preview">
+                        <div style="background: white; height: 100%; padding: 20px; font-size: 10px; line-height: 1.4; color: #333;">
+                            <div style="font-weight: bold; font-size: 14px; margin-bottom: 10px; text-transform: uppercase;">Sample Resume</div>
+                            <div style="margin-bottom: 10px; border-bottom: 1px solid #ccc; padding-bottom: 10px;">
+                                <div style="font-weight: bold;">John Doe</div>
+                                <div style="font-size: 9px; color: #666;">${t.industry} Professional</div>
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <div style="font-weight: bold; font-size: 9px; text-transform: uppercase; margin-bottom: 4px;">Experience</div>
+                                <div style="font-size: 9px;">• Senior ${t.industry} Specialist<br>• Led team initiatives<br>• Increased efficiency by 40%</div>
+                            </div>
                         </div>
-                        <div class="bullet-text">${escapeHtml(item.text)}</div>
-                        ${analysis.metrics.length > 0 ? `<div style="margin-top: 8px; font-size: 13px; color: var(--success);">📊 Metrics found: ${analysis.metrics.join(', ')}</div>` : ''}
-                        <div class="bullet-feedback">${feedbackHtml}</div>
                     </div>
-                `;
-            }).join('');
-        }
-
-        function renderSuggestions(bullets) {
-            const container = document.getElementById('improvementSuggestions');
-
-            // Find bullets that need improvement
-            const needsWork = bullets.filter(b => b.analysis.grade !== 'excellent');
-
-            if (needsWork.length === 0) {
-                container.innerHTML = '<p style="color: var(--success); font-weight: 500;">🎉 Great job! All your bullet points look excellent.</p>';
-                return;
-            }
-
-            // Generate specific suggestions
-            const suggestions = [];
-
-            needsWork.forEach(bullet => {
-                const text = bullet.text;
-                const analysis = bullet.analysis;
-
-                if (!analysis.strengths.includes('Strong action verb')) {
-                    const verbs = analysis.suggestedVerbs;
-                    suggestions.push({
-                        original: text.split(/\s+/).slice(0, 5).join(' ') + '...',
-                        suggestion: `${verbs[0]} ${text.toLowerCase().replace(/^\w+\s*/, '')}`,
-                        reason: 'Start with a strong action verb'
-                    });
-                }
-
-                if (!analysis.strengths.includes('Contains quantifiable metrics')) {
-                    suggestions.push({
-                        original: text.split(/\s+/).slice(0, 5).join(' ') + '...',
-                        suggestion: text + ' resulting in 25% improvement in efficiency',
-                        reason: 'Add quantifiable impact (%, $, #)'
-                    });
-                }
-            });
-
-            // Show top 5 suggestions
-            container.innerHTML = suggestions.slice(0, 5).map((s, i) => `
-                <div style="margin-bottom: 16px; padding: 16px; background: #f0f9ff; border-radius: 8px; border-left: 4px solid var(--accent);">
-                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">
-                        <strong>Issue:</strong> ${s.reason}
+                    <div class="template-info">
+                        <h3>${t.name}</h3>
+                        <p>Best for: ${t.industry}</p>
+                        <div class="template-tags">
+                            ${t.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                        </div>
                     </div>
-                    <div style="font-size: 14px; margin-bottom: 8px; text-decoration: line-through; color: #991b1b;">
-                        ${escapeHtml(s.original)}
-                    </div>
-                    <div style="font-size: 14px; color: var(--success); font-weight: 500; margin-bottom: 8px;">
-                        ${escapeHtml(s.suggestion)}
-                    </div>
-                    <button class="suggestion-chip" onclick="copyToClipboard('${escapeHtml(s.suggestion)}')">
-                        📋 Copy improved version
-                    </button>
                 </div>
             `).join('');
         }
 
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                alert('Copied to clipboard!');
-            });
+        function useTemplate(name) {
+            showSection('builder');
+            // Could pre-fill with template structure
+            alert(`Template "${name}" selected! Starting builder with optimized structure.`);
         }
 
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
+        // Auto-resize textareas
+        document.querySelectorAll('textarea').forEach(ta => {
+            ta.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 500) + 'px';
+            });
+        });
     </script>
 </body>
 </html>
