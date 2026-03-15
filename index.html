@@ -12,13 +12,9 @@
 
         :root {
             --primary: #4f46e5;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
             --bg: #f8fafc;
             --surface: #ffffff;
             --text: #0f172a;
-            --text-secondary: #64748b;
             --border: #e2e8f0;
         }
 
@@ -29,9 +25,54 @@
             overflow: hidden;
         }
 
-        .app-container {
+        /* Welcome Screen */
+        #welcomeScreen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+            z-index: 1000;
             display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .welcome-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 24px;
+            padding: 3rem;
+            max-width: 600px;
+        }
+
+        .welcome-card h1 { font-size: 2.5rem; margin-bottom: 1rem; }
+        .welcome-card p { font-size: 1.1rem; opacity: 0.9; margin-bottom: 2rem; }
+
+        .start-btn {
+            padding: 1rem 2.5rem;
+            background: white;
+            color: var(--primary);
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .start-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+
+        /* Main App - Initially Hidden */
+        #mainApp {
+            display: none;
             height: 100vh;
+        }
+
+        #mainApp.active {
+            display: flex;
         }
 
         .left-panel {
@@ -41,7 +82,6 @@
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
         }
 
         .panel-header {
@@ -57,7 +97,7 @@
             margin-bottom: 0.75rem;
         }
 
-        .logo { font-weight: 700; font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
+        .logo { font-weight: 700; font-size: 1.25rem; }
 
         .back-btn {
             background: rgba(255,255,255,0.2);
@@ -68,12 +108,9 @@
             border-radius: 6px;
             cursor: pointer;
             font-size: 1.2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
-        .back-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .back-btn:disabled { opacity: 0.3; }
 
         .progress-bar {
             display: flex;
@@ -86,7 +123,6 @@
             height: 4px;
             background: rgba(255,255,255,0.3);
             border-radius: 2px;
-            transition: all 0.3s;
         }
 
         .progress-segment.active { background: white; }
@@ -121,8 +157,6 @@
             font-size: 0.95rem;
             line-height: 1.5;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            max-width: 100%;
-            word-wrap: break-word;
         }
 
         .bot-message .message-bubble {
@@ -151,7 +185,6 @@
             color: #1e40af;
             margin-bottom: 0.5rem;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
         }
 
         .suggestion-chips {
@@ -168,34 +201,22 @@
             border-radius: 20px;
             font-size: 0.85rem;
             cursor: pointer;
-            transition: all 0.2s;
             font-weight: 500;
-            text-align: left;
-            line-height: 1.4;
+            border: none;
+            font-family: inherit;
         }
 
         .chip:hover {
             background: var(--primary);
             color: white;
-            transform: translateY(-1px);
         }
 
-        .chip.secondary {
-            background: #f3f4f6;
-            border-color: #d1d5db;
-            color: #374151;
-        }
-
-        .chip.secondary:hover {
-            background: #374151;
-            color: white;
-        }
-
-        .chip.full-sentence {
+        .chip.full {
             width: 100%;
+            text-align: left;
             margin-bottom: 0.5rem;
-            padding: 0.75rem 1rem;
-            font-size: 0.9rem;
+            padding: 0.75rem;
+            line-height: 1.4;
         }
 
         .input-container {
@@ -212,11 +233,6 @@
             border-radius: 12px;
             border: 2px solid var(--border);
             align-items: flex-end;
-        }
-
-        .input-wrapper:focus-within {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
 
         .chat-input {
@@ -241,12 +257,8 @@
             border: none;
             cursor: pointer;
             font-size: 1.2rem;
-            flex-shrink: 0;
         }
 
-        .send-btn:hover { background: #3730a3; }
-
-        /* Right Panel */
         .right-panel {
             flex: 1;
             display: flex;
@@ -267,13 +279,12 @@
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            background: conic-gradient(var(--success) calc(var(--score) * 1%), #e2e8f0 0);
+            background: conic-gradient(var(--primary) calc(var(--score, 0) * 1%), #e2e8f0 0);
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
             font-weight: 700;
-            font-size: 1.1rem;
         }
 
         .score-circle::before {
@@ -286,26 +297,6 @@
         }
 
         .score-value { position: relative; z-index: 1; }
-
-        .score-info h3 { font-size: 0.9rem; font-weight: 600; }
-        .score-info p { font-size: 0.8rem; color: var(--text-secondary); }
-
-        .keyword-cloud {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-            margin-left: auto;
-        }
-
-        .keyword-tag {
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-
-        .keyword-tag.matched { background: #d1fae5; color: #065f46; }
-        .keyword-tag.missing { background: #fee2e2; color: #991b1b; opacity: 0.7; }
 
         .preview-wrapper {
             flex: 1;
@@ -336,13 +327,11 @@
             font-size: 16pt;
             font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 0.5pt;
             margin-bottom: 4pt;
         }
 
         .resume-contact {
             font-size: 9.5pt;
-            color: #333;
             display: flex;
             gap: 12pt;
             flex-wrap: wrap;
@@ -362,7 +351,6 @@
         .summary-text {
             font-size: 10.5pt;
             line-height: 1.4;
-            text-align: justify;
         }
 
         .entry { margin-bottom: 8pt; }
@@ -370,16 +358,11 @@
         .entry-header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 2pt;
         }
 
         .entry-title { font-weight: bold; font-size: 10.5pt; }
-        .entry-date { font-size: 9.5pt; color: #333; font-style: italic; }
-        .entry-subtitle { font-size: 10pt; font-style: italic; color: #333; margin-bottom: 3pt; }
-        .entry-desc { font-size: 10pt; line-height: 1.3; }
-
-        .entry-desc ul { margin: 0; padding-left: 14pt; }
-        .entry-desc li { margin-bottom: 2pt; }
+        .entry-date { font-size: 9.5pt; font-style: italic; }
+        .entry-subtitle { font-size: 10pt; font-style: italic; margin-bottom: 3pt; }
 
         .skills-list {
             display: flex;
@@ -394,84 +377,22 @@
             font-size: 9.5pt;
             border: 0.5pt solid #e5e7eb;
         }
-
-        .highlight { background: rgba(16, 185, 129, 0.2); padding: 0 2px; border-radius: 2px; }
-
-        /* Welcome Screen */
-        .welcome-screen {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
-            z-index: 2000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            text-align: center;
-            padding: 2rem;
-        }
-
-        .welcome-card {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 24px;
-            padding: 3rem;
-            max-width: 600px;
-        }
-
-        .welcome-card h1 { font-size: 2.5rem; margin-bottom: 1rem; }
-        .welcome-card p { font-size: 1.1rem; opacity: 0.9; margin-bottom: 2rem; }
-
-        .start-btn {
-            padding: 1rem 2.5rem;
-            background: white;
-            color: var(--primary);
-            border: none;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .start-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-
-        .features {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-
-        .feature {
-            background: rgba(255,255,255,0.1);
-            padding: 1rem;
-            border-radius: 12px;
-            font-size: 0.85rem;
-        }
-
-        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
     <!-- Welcome Screen -->
-    <div class="welcome-screen" id="welcomeScreen">
+    <div id="welcomeScreen">
         <div class="welcome-card">
             <div style="font-size: 4rem; margin-bottom: 1rem;">🎯</div>
             <h1>ATS Resume Builder</h1>
-            <p>Create an optimized resume with real-time keyword suggestions and ATS scoring.</p>
-            <button class="start-btn" onclick="startApp()">Start Building</button>
-            <div class="features">
-                <div class="feature">📄 Perfect A4 Format</div>
-                <div class="feature">⚡ Smart Suggestions</div>
-                <div class="feature">🎯 ATS Scoring</div>
-            </div>
+            <p>Create an optimized resume with smart suggestions and ATS scoring.</p>
+            <button class="start-btn" onclick="startBuilding()">Start Building</button>
         </div>
     </div>
 
     <!-- Main App -->
-    <div class="app-container hidden" id="mainApp">
+    <div id="mainApp">
         <!-- Left Panel -->
         <div class="left-panel">
             <div class="panel-header">
@@ -487,7 +408,7 @@
             <div class="input-container">
                 <div class="input-wrapper">
                     <textarea class="chat-input" id="userInput" placeholder="Type your response..." rows="1"></textarea>
-                    <button class="send-btn" onclick="handleSend()">↑</button>
+                    <button class="send-btn" onclick="sendMessage()">↑</button>
                 </div>
             </div>
         </div>
@@ -495,14 +416,13 @@
         <!-- Right Panel -->
         <div class="right-panel">
             <div class="ats-header">
-                <div class="score-circle" id="scoreCircle" style="--score: 0;">
+                <div class="score-circle" id="scoreCircle">
                     <span class="score-value" id="scoreValue">0</span>
                 </div>
-                <div class="score-info">
-                    <h3>ATS Score</h3>
-                    <p id="scoreText">Start building</p>
+                <div>
+                    <h3 style="font-size: 0.9rem; font-weight: 600;">ATS Score</h3>
+                    <p style="font-size: 0.8rem; color: #64748b;" id="scoreText">Start building</p>
                 </div>
-                <div class="keyword-cloud" id="keywordCloud"></div>
             </div>
 
             <div class="preview-wrapper">
@@ -517,127 +437,116 @@
     </div>
 
     <script>
-        // Data
-        const state = {
-            step: 0,
-            history: [],
-            data: {
-                targetRole: '',
-                name: '', title: '', email: '', phone: '', location: '',
-                summary: '', experience: [], education: [], skills: []
-            },
-            currentExp: null,
-            currentEdu: null,
-            industry: 'general',
-            atsScore: 0
+        // State
+        let currentStep = 0;
+        let history = [];
+        let resumeData = {
+            name: '', title: '', email: '', phone: '', location: '',
+            summary: '', experience: [], education: [], skills: []
         };
+        let currentExp = null;
+        let industry = 'general';
 
-        const keywords = {
-            software: ['Python', 'JavaScript', 'React', 'Node.js', 'AWS', 'Docker', 'Kubernetes', 'SQL', 'Git', 'Agile', 'REST API', 'Cloud'],
-            marketing: ['SEO', 'SEM', 'Google Analytics', 'Content Strategy', 'Social Media', 'CRM', 'Email Marketing', 'PPC', 'Brand Management'],
-            sales: ['B2B', 'CRM', 'Salesforce', 'Lead Generation', 'Negotiation', 'Account Management', 'Pipeline Management'],
-            general: ['Communication', 'Leadership', 'Project Management', 'Microsoft Office', 'Excel', 'Strategic Planning']
-        };
-
-        // Summary templates - FULL SENTENCES not single words
-        const summaryTemplates = {
+        // Summary templates by industry
+        const templates = {
             software: [
                 "Results-driven Software Engineer with 5+ years of experience designing scalable applications and implementing efficient solutions. Proficient in React, Node.js, and cloud architecture with a proven track record of delivering high-quality code.",
-                "Innovative Full Stack Developer specializing in building responsive web applications and RESTful APIs. Experienced in Agile development environments and passionate about writing clean, maintainable code.",
-                "Detail-oriented Backend Engineer with expertise in database design, API development, and microservices architecture. Skilled in Python, SQL, and cloud platforms with strong problem-solving abilities."
+                "Innovative Full Stack Developer specializing in building responsive web applications and RESTful APIs. Experienced in Agile development environments and passionate about writing clean, maintainable code."
             ],
             marketing: [
-                "Results-driven Marketing Manager with 6+ years of experience developing data-driven campaigns that increased revenue by 40%. Expert in digital strategy, SEO/SEM, and brand management with strong analytical skills.",
-                "Creative Content Strategist specializing in brand storytelling and audience engagement. Proven track record of managing successful social media campaigns and improving conversion rates through targeted marketing initiatives.",
-                "Data-driven Digital Marketing Specialist with expertise in Google Analytics, PPC advertising, and marketing automation. Skilled at optimizing campaigns to maximize ROI and drive customer acquisition."
+                "Results-driven Marketing Manager with 6+ years of experience developing data-driven campaigns that increased revenue by 40%. Expert in digital strategy, SEO/SEM, and brand management.",
+                "Creative Content Strategist specializing in brand storytelling and audience engagement. Proven track record of managing successful social media campaigns and improving conversion rates."
             ],
             sales: [
-                "Top-performing Sales Representative with consistent record of exceeding quota by 150%. Expert in B2B sales, relationship building, and consultative selling with strong negotiation and closing skills.",
-                "Strategic Account Manager with 5+ years of experience managing enterprise client portfolios. Proven ability to identify opportunities, build long-term relationships, and drive revenue growth.",
-                "Dynamic Business Development Manager skilled in lead generation, pipeline management, and sales strategy. Track record of opening new markets and establishing profitable partnerships."
+                "Top-performing Sales Representative with consistent record of exceeding quota by 150%. Expert in B2B sales, relationship building, and consultative selling.",
+                "Strategic Account Manager with 5+ years of experience managing enterprise client portfolios and driving revenue growth."
             ],
             general: [
                 "Results-driven professional with 5+ years of experience delivering exceptional results in fast-paced environments. Proven track record of increasing efficiency and leading high-performing teams.",
-                "Detail-oriented specialist with strong analytical and problem-solving skills. Experienced in managing complex projects, collaborating with cross-functional teams, and driving process improvements.",
-                "Versatile professional with expertise in project management and strategic planning. Skilled at communicating with stakeholders, managing timelines, and delivering projects on budget."
+                "Detail-oriented specialist with strong analytical and problem-solving skills. Experienced in managing complex projects and collaborating with cross-functional teams."
             ]
         };
 
-        const actionWords = ['Led', 'Managed', 'Developed', 'Created', 'Implemented', 'Increased', 'Reduced', 'Improved'];
+        const keywords = {
+            software: ['Python', 'JavaScript', 'React', 'Node.js', 'AWS', 'Docker', 'SQL', 'Git', 'Agile'],
+            marketing: ['SEO', 'SEM', 'Google Analytics', 'Content Strategy', 'Social Media', 'CRM'],
+            sales: ['B2B', 'CRM', 'Salesforce', 'Lead Generation', 'Negotiation', 'Account Management'],
+            general: ['Communication', 'Leadership', 'Project Management', 'Microsoft Office', 'Excel']
+        };
 
-        // Steps
+        // Step definitions
         const steps = [
             {
                 id: 'role',
-                question: "What job title are you targeting? (e.g., Software Engineer, Marketing Manager)",
-                suggestions: ['Software Engineer', 'Product Manager', 'Marketing Director', 'Sales Representative', 'Data Analyst'],
-                field: 'targetRole'
+                text: "What job title are you targeting? (e.g., Software Engineer, Marketing Manager)",
+                suggestions: ['Software Engineer', 'Product Manager', 'Marketing Director', 'Sales Representative'],
+                onComplete: (val) => {
+                    resumeData.targetRole = val;
+                    detectIndustry(val);
+                }
             },
             {
                 id: 'name',
-                question: "What's your full name?",
+                text: "What's your full name?",
                 field: 'name'
             },
             {
                 id: 'title',
-                question: "What title should appear on your resume?",
-                suggestions: ['Senior Software Engineer', 'Marketing Manager', 'Product Manager', 'Sales Executive'],
+                text: "What title should appear on your resume?",
+                suggestions: ['Senior Software Engineer', 'Marketing Manager', 'Product Manager'],
                 field: 'title'
             },
             {
                 id: 'email',
-                question: "Your email address?",
+                text: "Your email address?",
                 field: 'email'
             },
             {
                 id: 'phone',
-                question: "Phone number?",
+                text: "Phone number?",
                 field: 'phone'
             },
             {
                 id: 'location',
-                question: "City and State?",
+                text: "City and State?",
                 field: 'location'
             },
             {
                 id: 'summary',
-                question: "Write a professional summary (2-3 sentences). Click a template below or write your own:",
+                text: "Write a professional summary (2-3 sentences). Click a template below or write your own:",
                 isParagraph: true,
-                getSuggestions: () => {
-                    const ind = detectIndustry(state.data.targetRole);
-                    return summaryTemplates[ind] || summaryTemplates.general;
-                },
+                getSuggestions: () => templates[industry] || templates.general,
                 field: 'summary'
             },
             {
                 id: 'exp_title',
-                question: "Most recent job title?",
-                suggestions: ['Software Engineer', 'Senior Developer', 'Team Lead', 'Manager'],
-                store: (val) => { state.currentExp = {title: val, company: '', date: '', desc: ''}; }
+                text: "Most recent job title?",
+                suggestions: ['Software Engineer', 'Senior Developer', 'Team Lead'],
+                onComplete: (val) => { currentExp = {title: val, company: '', date: '', desc: ''}; }
             },
             {
                 id: 'exp_company',
-                question: "Company name?",
-                store: (val) => { state.currentExp.company = val; }
+                text: "Company name?",
+                onComplete: (val) => { currentExp.company = val; }
             },
             {
                 id: 'exp_date',
-                question: "Dates employed? (e.g., Jan 2020 - Present)",
-                store: (val) => { state.currentExp.date = val; }
+                text: "Dates employed? (e.g., Jan 2020 - Present)",
+                onComplete: (val) => { currentExp.date = val; }
             },
             {
                 id: 'exp_desc',
-                question: "Describe your achievements. Use action verbs and numbers!",
-                suggestions: ['Led team of 5 developers', 'Increased revenue by 25%', 'Implemented CI/CD pipeline', 'Reduced loading time by 40%'],
+                text: "Describe your achievements. Use action verbs and numbers!",
                 isParagraph: true,
-                store: (val) => {
-                    state.currentExp.desc = val;
-                    state.data.experience.push({...state.currentExp});
+                suggestions: ['Led team of 5 developers', 'Increased revenue by 25%', 'Implemented CI/CD pipeline'],
+                onComplete: (val) => {
+                    currentExp.desc = val;
+                    resumeData.experience.push({...currentExp});
                 }
             },
             {
                 id: 'exp_more',
-                question: "Add another position?",
+                text: "Add another position?",
                 options: ['Yes, add another', 'No, continue'],
                 handler: (val) => {
                     if (val.includes('Yes')) {
@@ -649,57 +558,48 @@
             },
             {
                 id: 'edu_degree',
-                question: "Highest degree? (e.g., BS Computer Science)",
-                store: (val) => { state.currentEdu = {degree: val, school: '', date: ''}; }
+                text: "Highest degree? (e.g., BS Computer Science)",
+                onComplete: (val) => { resumeData.education.push({degree: val, school: '', date: ''}); }
             },
             {
                 id: 'edu_school',
-                question: "University/Institution?",
-                store: (val) => { state.currentEdu.school = val; }
+                text: "University/Institution?",
+                onComplete: (val) => { resumeData.education[resumeData.education.length-1].school = val; }
             },
             {
                 id: 'edu_date',
-                question: "Graduation year?",
-                store: (val) => {
-                    state.currentEdu.date = val;
-                    state.data.education.push({...state.currentEdu});
-                }
-            },
-            {
-                id: 'edu_more',
-                question: "Add another degree?",
-                options: ['Yes', 'No, continue to skills'],
-                handler: (val) => {
-                    if (val.includes('Yes')) {
-                        setTimeout(() => jumpToStep(12), 300);
-                        return false;
-                    }
-                    return true;
-                }
+                text: "Graduation year?",
+                onComplete: (val) => { resumeData.education[resumeData.education.length-1].date = val; }
             },
             {
                 id: 'skills',
-                question: "List your skills (comma separated). I'll check for ATS keywords!",
-                suggestions: (() => {
-                    const ind = detectIndustry(state.data.targetRole);
-                    return keywords[ind].slice(0, 6);
-                })(),
+                text: "List your skills (comma separated):",
+                suggestions: (() => (keywords[industry] || keywords.general).slice(0, 6))(),
                 field: 'skills'
             }
         ];
 
-        // Initialize
-        function startApp() {
-            document.getElementById('welcomeScreen').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
+        // Start the app
+        function startBuilding() {
+            console.log("Starting app...");
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('mainApp').classList.add('active');
             renderProgress();
-            showCurrentStep();
+            showStep(0);
 
-            // Setup textarea auto-resize
+            // Setup textarea
             const textarea = document.getElementById('userInput');
             textarea.addEventListener('input', function() {
                 this.style.height = 'auto';
                 this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            });
+
+            // Enter key support
+            textarea.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
             });
         }
 
@@ -713,38 +613,31 @@
         function updateProgress() {
             steps.forEach((_, i) => {
                 const el = document.getElementById(`prog-${i}`);
+                if (!el) return;
                 el.className = 'progress-segment';
-                if (i < state.step) el.classList.add('completed');
-                else if (i === state.step) el.classList.add('active');
+                if (i < currentStep) el.classList.add('completed');
+                else if (i === currentStep) el.classList.add('active');
             });
-            document.getElementById('backBtn').disabled = state.step === 0;
+            document.getElementById('backBtn').disabled = currentStep === 0;
         }
 
-        function showCurrentStep() {
-            const step = steps[state.step];
-            if (!step) {
+        function showStep(index) {
+            if (index >= steps.length) {
                 finishResume();
                 return;
             }
 
-            updateProgress();
+            currentStep = index;
+            const step = steps[index];
 
             let suggestions = step.suggestions || [];
             if (step.getSuggestions) suggestions = step.getSuggestions();
-            if (typeof suggestions === 'function') suggestions = suggestions();
 
-            // For paragraph steps, use full-sentence styling
-            const isParagraph = step.isParagraph || false;
-
-            addBotMessage(step.question, suggestions, step.options, isParagraph);
-
-            // Reset textarea height
-            const textarea = document.getElementById('userInput');
-            textarea.style.height = 'auto';
-            textarea.rows = isParagraph ? 3 : 1;
+            displayMessage(step.text, suggestions, step.options, step.isParagraph);
+            updateProgress();
         }
 
-        function addBotMessage(text, suggestions = [], options = [], isParagraph = false) {
+        function displayMessage(text, suggestions, options, isParagraph) {
             const container = document.getElementById('chatMessages');
 
             const div = document.createElement('div');
@@ -752,22 +645,28 @@
 
             let html = `<div class="message-bubble">${text}</div>`;
 
-            if (suggestions.length > 0) {
+            if (suggestions && suggestions.length > 0) {
                 html += `<div class="suggestion-box">
-                    <div class="suggestion-title">💡 ${isParagraph ? 'Click to use template (or type your own):' : 'Suggestions'}</div>
-                    <div class="suggestion-chips">
-                        ${suggestions.map(s => `<button class="chip ${isParagraph ? 'full-sentence' : ''}" onclick="insertChip('${escapeJs(s)}')">${s}</button>`).join('')}
-                    </div>
-                </div>`;
+                    <div class="suggestion-title">💡 ${isParagraph ? 'Click to use template:' : 'Suggestions'}</div>
+                    <div class="suggestion-chips">`;
+
+                suggestions.forEach(s => {
+                    const safeText = s.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    html += `<button class="chip ${isParagraph ? 'full' : ''}" onclick="insertText('${safeText}')">${s}</button>`;
+                });
+
+                html += `</div></div>`;
             }
 
             if (options && options.length > 0) {
                 html += `<div class="suggestion-box" style="background:white; border-color:var(--border);">
                     <div class="suggestion-title" style="color:var(--text-secondary);">Options</div>
-                    <div class="suggestion-chips">
-                        ${options.map(o => `<button class="chip secondary" onclick="insertChip('${escapeJs(o)}')">${o}</button>`).join('')}
-                    </div>
-                </div>`;
+                    <div class="suggestion-chips">`;
+                options.forEach(o => {
+                    const safeText = o.replace(/'/g, "\\'");
+                    html += `<button class="chip" style="background:#f3f4f6; border-color:#d1d5db; color:#374151;" onclick="insertText('${safeText}')">${o}</button>`;
+                });
+                html += `</div></div>`;
             }
 
             div.innerHTML = html;
@@ -775,51 +674,43 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        function addUserMessage(text) {
-            const container = document.getElementById('chatMessages');
-            const div = document.createElement('div');
-            div.className = 'message user-message';
-            // Preserve line breaks in display
-            const formattedText = escapeHtml(text).replace(/\n/g, '<br>');
-            div.innerHTML = `<div class="message-bubble">${formattedText}</div>`;
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function insertChip(text) {
+        function insertText(text) {
             const textarea = document.getElementById('userInput');
             textarea.value = text;
-            // Trigger resize
             textarea.style.height = 'auto';
             textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
             textarea.focus();
         }
 
-        function handleSend() {
+        function sendMessage() {
             const textarea = document.getElementById('userInput');
             const text = textarea.value.trim();
             if (!text) return;
 
-            addUserMessage(text);
+            // Add user message
+            const container = document.getElementById('chatMessages');
+            const div = document.createElement('div');
+            div.className = 'message user-message';
+            div.innerHTML = `<div class="message-bubble">${escapeHtml(text).replace(/\n/g, '<br>')}</div>`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+
+            // Clear input
             textarea.value = '';
             textarea.style.height = 'auto';
 
-            const step = steps[state.step];
+            // Process step
+            const step = steps[currentStep];
 
             // Store data
             if (step.field) {
                 if (step.field === 'skills') {
-                    state.data.skills = text.split(',').map(s => s.trim()).filter(s => s);
+                    resumeData.skills = text.split(',').map(s => s.trim()).filter(s => s);
                 } else {
-                    state.data[step.field] = text;
+                    resumeData[step.field] = text;
                 }
             }
-            if (step.store) step.store(text);
-
-            // Detect industry on first step
-            if (step.id === 'role') {
-                state.industry = detectIndustry(text);
-            }
+            if (step.onComplete) step.onComplete(text);
 
             // Custom handler
             let shouldAdvance = true;
@@ -828,87 +719,56 @@
             }
 
             if (shouldAdvance) {
-                state.history.push(state.step);
-                state.step++;
-                setTimeout(showCurrentStep, 500);
+                history.push(currentStep);
+                setTimeout(() => showStep(currentStep + 1), 500);
             }
 
             updatePreview();
-            calculateScore();
+            updateScore();
         }
 
         function goBack() {
-            if (state.history.length > 0) {
-                state.step = state.history.pop();
-                showCurrentStep();
+            if (history.length > 0) {
+                const prev = history.pop();
+                showStep(prev);
             }
         }
 
         function jumpToStep(index) {
-            state.history.push(state.step);
-            state.step = index;
-            showCurrentStep();
+            history.push(currentStep);
+            showStep(index);
         }
 
         function detectIndustry(role) {
             const r = role.toLowerCase();
-            if (r.includes('software') || r.includes('developer') || r.includes('engineer')) return 'software';
-            if (r.includes('marketing')) return 'marketing';
-            if (r.includes('sales')) return 'sales';
-            return 'general';
+            if (r.includes('software') || r.includes('developer') || r.includes('engineer')) industry = 'software';
+            else if (r.includes('marketing')) industry = 'marketing';
+            else if (r.includes('sales')) industry = 'sales';
+            else industry = 'general';
         }
 
-        function calculateScore() {
+        function updateScore() {
             let score = 0;
-            const d = state.data;
+            if (resumeData.name) score += 10;
+            if (resumeData.title) score += 10;
+            if (resumeData.email) score += 10;
+            if (resumeData.summary) score += 20;
+            if (resumeData.experience.length > 0) score += 30;
+            if (resumeData.education.length > 0) score += 10;
+            if (resumeData.skills.length > 0) score += 10;
 
-            // Completeness
-            if (d.name) score += 10;
-            if (d.title) score += 10;
-            if (d.email && d.phone) score += 10;
-            if (d.summary && d.summary.length > 50) score += 15;
-            if (d.experience.length > 0) score += 20;
-            if (d.education.length > 0) score += 15;
-            if (d.skills.length > 0) score += 10;
+            document.getElementById('scoreValue').textContent = score;
+            document.getElementById('scoreCircle').style.setProperty('--score', score);
 
-            // Keywords
-            const indKeywords = keywords[state.industry] || keywords.general;
-            const content = `${d.summary} ${d.experience.map(e => e.desc).join(' ')} ${d.skills.join(' ')}`.toLowerCase();
-            const matches = indKeywords.filter(k => content.includes(k.toLowerCase()));
-            score += Math.min(20, matches.length * 2);
-
-            state.atsScore = Math.min(100, score);
-            updateScoreUI(matches, indKeywords);
-        }
-
-        function updateScoreUI(matches, all) {
-            const circle = document.getElementById('scoreCircle');
-            const val = document.getElementById('scoreValue');
-            const txt = document.getElementById('scoreText');
-            const cloud = document.getElementById('keywordCloud');
-
-            circle.style.setProperty('--score', state.atsScore);
-            val.textContent = state.atsScore;
-
-            const color = state.atsScore < 50 ? 'var(--danger)' : state.atsScore < 80 ? 'var(--warning)' : 'var(--success)';
-            circle.style.background = `conic-gradient(${color} ${state.atsScore}%, #e2e8f0 0)`;
-
-            txt.textContent = state.atsScore < 50 ? 'Needs work' : state.atsScore < 80 ? 'Good progress' : 'ATS Ready!';
-
-            cloud.innerHTML = [
-                ...matches.slice(0, 3).map(m => `<span class="keyword-tag matched">✓ ${m}</span>`),
-                ...all.filter(k => !matches.includes(k)).slice(0, 2).map(m => `<span class="keyword-tag missing">+ ${m}</span>`)
-            ].join('');
+            const text = score < 50 ? 'Needs work' : score < 80 ? 'Good progress' : 'ATS Ready!';
+            document.getElementById('scoreText').textContent = text;
         }
 
         function updatePreview() {
-            const d = state.data;
+            const d = resumeData;
             const el = document.getElementById('resumePreview');
 
-            if (!d.name) {
-                el.innerHTML = `<div style="text-align:center; color:#94a3b8; padding-top:100px;"><div style="font-size:3rem; margin-bottom:1rem;">📄</div>Your resume will appear here</div>`;
-                return;
-            }
+            if (!d.name) return;
 
             let html = `
                 <div class="resume-header">
@@ -922,9 +782,7 @@
             `;
 
             if (d.summary) {
-                // Preserve paragraphs in summary
-                const summaryHtml = escapeHtml(d.summary).replace(/\n/g, '<br>');
-                html += `<div class="section"><div class="section-title">Professional Summary</div><div class="summary-text">${highlightKeywords(summaryHtml)}</div></div>`;
+                html += `<div class="section"><div class="section-title">Professional Summary</div><div class="summary-text">${escapeHtml(d.summary).replace(/\n/g, '<br>')}</div></div>`;
             }
 
             if (d.experience.length > 0) {
@@ -937,7 +795,7 @@
                                 <span class="entry-date">${escapeHtml(exp.date)}</span>
                             </div>
                             <div class="entry-subtitle">${escapeHtml(exp.company)}</div>
-                            <div class="entry-desc">${formatDesc(exp.desc)}</div>
+                            <div style="font-size: 10pt;">${escapeHtml(exp.desc).replace(/\n/g, '<br>')}</div>
                         </div>
                     `;
                 });
@@ -967,38 +825,18 @@
             el.innerHTML = html;
         }
 
-        function formatDesc(text) {
-            if (!text) return '';
-            if (text.includes('•')) return '<ul>' + text.split('•').filter(s=>s.trim()).map(s => `<li>${highlightKeywords(escapeHtml(s.trim()))}</li>`).join('') + '</ul>';
-            // Preserve line breaks
-            return highlightKeywords(escapeHtml(text).replace(/\n/g, '<br>'));
-        }
-
-        function highlightKeywords(text) {
-            const kw = keywords[state.industry] || keywords.general;
-            kw.forEach(k => {
-                text = text.replace(new RegExp(`\\b${k}\\b`, 'gi'), match => `<span class="highlight">${match}</span>`);
-            });
-            return text;
-        }
-
         function escapeHtml(text) {
             if (!text) return '';
-            const d = document.createElement('div');
-            d.textContent = text;
-            return d.innerHTML;
-        }
-
-        function escapeJs(text) {
-            return text.replace(/'/g, "\\'").replace(/"/g, '\\"');
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         function finishResume() {
-            calculateScore();
-            addBotMessage(`🎉 Resume Complete! ATS Score: ${state.atsScore}/100\n\nDownload your resume:`, [], ['Download PDF', 'Download Word']);
+            displayMessage(`🎉 Resume Complete! ATS Score: ${document.getElementById('scoreValue').textContent}/100\n\nDownload your resume:`, [], ['Download PDF', 'Download Word']);
 
+            // Add download handler
             steps.push({
-                id: 'download',
                 handler: (val) => {
                     if (val.includes('PDF')) downloadPDF();
                     else if (val.includes('Word')) downloadWord();
@@ -1012,31 +850,21 @@
             html2canvas(el, {scale: 2}).then(canvas => {
                 const img = canvas.toDataURL('image/png');
                 const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-                const w = 210;
-                const h = canvas.height * w / canvas.width;
-                pdf.addImage(img, 'PNG', 0, 0, w, Math.min(h, 297));
-                pdf.save(`${state.data.name.replace(/\s+/g, '_')}_Resume.pdf`);
-                addBotMessage('✅ PDF downloaded!');
+                pdf.addImage(img, 'PNG', 0, 0, 210, 297);
+                pdf.save(`${resumeData.name.replace(/\s+/g, '_')}_Resume.pdf`);
+                alert('PDF downloaded!');
             });
         }
 
         function downloadWord() {
-            const d = state.data;
-            const content = `
-                <h1>${d.name}</h1>
-                <p>${d.email} | ${d.phone} | ${d.location}</p>
-                <h2>Summary</h2><p>${d.summary}</p>
-                <h2>Experience</h2>
-                ${d.experience.map(e => `<h3>${e.title}</h3><p>${e.company} | ${e.date}</p><p>${e.desc}</p>`).join('')}
-                <h2>Education</h2>
-                ${d.education.map(e => `<h3>${e.degree}</h3><p>${e.school}, ${e.date}</p>`).join('')}
-            `;
+            const d = resumeData;
+            const content = `<h1>${d.name}</h1><p>${d.email} | ${d.phone}</p><h2>Summary</h2><p>${d.summary}</p>`;
             const blob = new Blob(['\ufef', content], {type: 'application/msword'});
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
             a.download = `${d.name.replace(/\s+/g, '_')}_Resume.doc`;
             a.click();
-            addBotMessage('✅ Word document downloaded!');
+            alert('Word document downloaded!');
         }
     </script>
 </body>
