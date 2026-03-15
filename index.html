@@ -765,6 +765,12 @@
         .smart-tooltip.show {
             opacity: 1;
         }
+
+        .tooltip-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: #60a5fa;
+        }
     </style>
 </head>
 <body>
@@ -884,7 +890,7 @@
             },
             currentExperience: null,
             currentEducation: null,
-            jdKeywords: [], // Extracted from job description
+            jdKeywords: [],
             industry: 'general',
             atsScore: 0
         };
@@ -900,13 +906,14 @@
 
         const actionVerbs = ['Achieved', 'Implemented', 'Streamlined', 'Optimized', 'Led', 'Managed', 'Developed', 'Created', 'Increased', 'Reduced', 'Improved', 'Designed', 'Launched', 'Negotiated', 'Collaborated', 'Analyzed', 'Delivered', 'Exceeded'];
 
-        // Conversation Flow
+        // FIXED Conversation Flow - Added missing 'next' properties
         const flow = [
             {
                 id: 'role',
                 title: 'Target Role',
                 message: "What specific job title are you applying for? (e.g., 'Senior Frontend Developer' or 'Marketing Manager')",
                 suggestions: ['Software Engineer', 'Product Manager', 'Marketing Director', 'Sales Representative', 'Project Manager'],
+                next: 'jd',  // FIXED: Added this line
                 handler: (input) => {
                     state.data.targetRole = input;
                     detectIndustry(input);
@@ -918,6 +925,7 @@
                 title: 'Job Description',
                 message: "Want to paste a job description? I'll extract keywords to tailor your resume perfectly! Or skip to continue.",
                 quickReplies: ['Paste Job Description', 'Skip for now'],
+                next: 'name',  // FIXED: Added default next
                 handler: (input) => {
                     if (input.includes('Paste') || input.includes('job')) {
                         openJDModal();
@@ -990,6 +998,7 @@
                 title: 'Add More?',
                 message: "Add another position?",
                 quickReplies: ['Yes, add more', 'No, continue'],
+                next: 'education',  // FIXED: Added default next
                 handler: (input) => {
                     if (input.includes('Yes')) {
                         saveExperience();
@@ -1023,6 +1032,7 @@
                 title: 'More Education?',
                 message: "Add another degree?",
                 quickReplies: ['Yes', 'No, continue to skills'],
+                next: 'skills',  // FIXED: Added default next
                 handler: (input) => {
                     if (input.includes('Yes')) {
                         saveEducation();
@@ -1097,7 +1107,6 @@
 
         function generateDynamicSuggestions() {
             const suggestions = [];
-            const currentStep = flow[state.step].id;
 
             // Add action verbs
             suggestions.push(...actionVerbs.slice(0, 4).map(v => ({text: v, type: 'action'})));
@@ -1206,21 +1215,24 @@
             // Analyze if needed
             if (step.analyze) analyzeText(text, step.id);
 
-            // Advance
+            // Advance to next step
             setTimeout(() => {
                 if (step.handler) {
                     const result = step.handler(text);
                     if (result === false) return;
                 }
 
+                // FIXED: Better navigation logic
                 if (step.next) {
-                    const nextIdx = flow.findIndex(s => s.id === step.next);
-                    if (nextIdx !== -1) {
-                        state.history.push(state.step);
-                        state.step = nextIdx;
-                        showStep();
-                    } else if (step.next === 'finish') {
+                    if (step.next === 'finish') {
                         finishResume();
+                    } else {
+                        const nextIdx = flow.findIndex(s => s.id === step.next);
+                        if (nextIdx !== -1) {
+                            state.history.push(state.step);
+                            state.step = nextIdx;
+                            showStep();
+                        }
                     }
                 }
             }, 600);
@@ -1356,8 +1368,11 @@
 
             // Continue to next step
             setTimeout(() => {
-                state.step = flow.findIndex(s => s.id === 'name');
-                showStep();
+                const nextIdx = flow.findIndex(s => s.id === 'name');
+                if (nextIdx !== -1) {
+                    state.step = nextIdx;
+                    showStep();
+                }
             }, 1500);
         }
 
