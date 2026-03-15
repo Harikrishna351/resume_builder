@@ -3,1118 +3,854 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ProResume AI | Professional ATS Resume Builder</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <title>ResumeScanner AI - Smart Resume Analyzer</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-            --success: #059669;
-            --text: #111827;
-            --text-secondary: #6b7280;
-            --bg: #f3f4f6;
-            --surface: #ffffff;
-            --border: #e5e7eb;
+            --primary: #0f172a;
+            --accent: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
         }
 
         body {
             font-family: 'Inter', sans-serif;
             background: var(--bg);
-            height: 100vh;
-            overflow: hidden;
+            color: var(--text);
+            line-height: 1.6;
         }
 
-        .welcome-overlay {
-            position: fixed;
-            inset: 0;
-            background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%);
-            z-index: 10000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .welcome-container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 24px;
-            padding: 60px;
-            max-width: 600px;
-            text-align: center;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-        }
-
-        .welcome-container h1 { font-size: 42px; margin-bottom: 16px; color: var(--text); }
-        .welcome-container p { font-size: 18px; color: var(--text-secondary); margin-bottom: 40px; }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+        /* Header */
+        .navbar {
+            background: var(--primary);
             color: white;
-            border: none;
-            padding: 16px 48px;
-            font-size: 18px;
-            font-weight: 600;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.3); }
-
-        .app-container {
-            display: none;
-            height: 100vh;
-            width: 100%;
-        }
-
-        .app-container.active { display: flex; }
-
-        .left-panel {
-            width: 45%;
-            min-width: 500px;
-            background: var(--surface);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-
-        .panel-header {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            color: white;
-            padding: 24px;
+            padding: 16px 32px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
 
-        .brand { display: flex; align-items: center; gap: 12px; }
-        .brand-icon {
-            width: 40px; height: 40px; background: rgba(255,255,255,0.1);
-            border-radius: 10px; display: flex; align-items: center; justify-content: center;
-            font-size: 20px;
+        .logo { font-size: 24px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .nav-links { display: flex; gap: 32px; }
+        .nav-links a { color: rgba(255,255,255,0.8); text-decoration: none; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: white; }
+
+        /* Main Layout */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 32px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
         }
 
-        .icon-btn {
-            width: 40px; height: 40px; border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(255,255,255,0.05);
-            color: white; cursor: pointer; font-size: 18px;
-        }
-
-        .progress-container {
-            padding: 16px 24px;
-            background: #f8fafc;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .progress-bar {
-            height: 6px; background: #e2e8f0;
-            border-radius: 3px; overflow: hidden; margin-top: 8px;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary) 0%, #7c3aed 100%);
-            border-radius: 3px;
-            transition: width 0.5s;
-            width: 0%;
-        }
-
-        .chat-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 24px;
-            background: #f8fafc;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .message-wrapper { animation: slideIn 0.4s ease; }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .message-bubble {
-            max-width: 85%;
-            padding: 16px 20px;
+        /* Input Section */
+        .input-panel {
+            background: var(--card);
             border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+
+        .panel-header {
+            margin-bottom: 24px;
+        }
+
+        .panel-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--primary);
+        }
+
+        .panel-header p {
+            color: var(--text-secondary);
+            font-size: 15px;
+        }
+
+        .input-area {
+            position: relative;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 500px;
+            padding: 20px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
             font-size: 15px;
             line-height: 1.6;
+            resize: vertical;
+            transition: all 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .analyze-btn {
+            width: 100%;
+            margin-top: 20px;
+            padding: 16px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .analyze-btn:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.3);
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Results Panel */
+        .results-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .score-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .score-circle {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--text);
+            transition: all 0.5s ease;
+        }
+
+        .score-circle::before {
+            content: '';
+            position: absolute;
+            inset: 8px;
+            background: white;
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .score-value {
+            position: relative;
+            z-index: 2;
+        }
+
+        .score-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .score-message {
+            margin-top: 16px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .score-message.excellent { background: #d1fae5; color: #065f46; }
+        .score-message.good { background: #fef3c7; color: #92400e; }
+        .score-message.needs-work { background: #fee2e2; color: #991b1b; }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .metric-card {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .metric-value.good { color: var(--success); }
+        .metric-value.warning { color: var(--warning); }
+        .metric-value.danger { color: var(--danger); }
+
+        .metric-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Analysis Section */
+        .analysis-section {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 24px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
-        .message-ai .message-bubble {
-            background: white;
-            border: 1px solid var(--border);
-            border-bottom-left-radius: 4px;
-        }
-
-        .message-user {
-            align-self: flex-end;
-            margin-left: auto;
-        }
-
-        .message-user .message-bubble {
-            background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
-            color: white;
-            border-bottom-right-radius: 4px;
-        }
-
-        .suggestions-wrapper {
-            margin-top: 12px;
-            margin-left: 12px;
-        }
-
-        .suggestions-header {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--primary);
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .suggestion-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .suggestion-card {
-            background: white;
-            border: 2px solid #e0e7ff;
-            border-radius: 12px;
-            padding: 16px;
-            cursor: pointer;
+        .bullet-item {
+            border-left: 4px solid;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            background: #f8fafc;
+            border-radius: 0 8px 8px 0;
             transition: all 0.2s;
-            text-align: left;
-            font-size: 14px;
-            line-height: 1.5;
-            position: relative;
-            overflow: hidden;
         }
 
-        .suggestion-card:hover {
-            border-color: var(--primary);
+        .bullet-item:hover {
             transform: translateX(4px);
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
         }
 
-        .suggestion-card .action-hint {
-            position: absolute;
-            right: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            opacity: 0;
-            transition: all 0.2s;
-            color: var(--primary);
-            font-size: 12px;
-            font-weight: 600;
-            background: var(--primary-light);
-            padding: 4px 8px;
-            border-radius: 6px;
-        }
+        .bullet-item.excellent { border-left-color: var(--success); }
+        .bullet-item.good { border-left-color: var(--warning); }
+        .bullet-item.needs-improvement { border-left-color: var(--danger); }
 
-        .suggestion-card:hover .action-hint {
-            opacity: 1;
-            right: 12px;
-        }
-
-        .suggestion-card strong {
-            display: block;
-            margin-bottom: 4px;
-            color: var(--primary);
-            font-size: 12px;
-            text-transform: uppercase;
-        }
-
-        .input-section {
-            padding: 20px 24px;
-            background: white;
-            border-top: 1px solid var(--border);
-        }
-
-        .input-container {
-            display: flex;
-            gap: 12px;
-            align-items: flex-end;
-            background: #f8fafc;
-            padding: 12px;
-            border-radius: 16px;
-            border: 2px solid var(--border);
-            transition: all 0.2s;
-        }
-
-        .input-container:focus-within {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
-        }
-
-        .chat-input {
-            flex: 1;
-            border: none;
-            background: transparent;
-            padding: 8px;
+        .bullet-text {
             font-size: 15px;
-            outline: none;
-            resize: none;
-            min-height: 24px;
-            max-height: 200px;
-            font-family: inherit;
+            margin-bottom: 8px;
+            line-height: 1.5;
         }
 
-        .send-button {
-            width: 44px; height: 44px;
-            border-radius: 12px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 20px;
-            flex-shrink: 0;
-        }
-
-        .send-button:hover { background: var(--primary-dark); }
-
-        .right-panel {
-            flex: 1;
-            background: var(--bg);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .preview-header {
-            background: white;
-            padding: 20px 24px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .btn-secondary, .btn-success {
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            border: none;
-            display: flex;
+        .bullet-score {
+            display: inline-flex;
             align-items: center;
             gap: 6px;
-        }
-
-        .btn-secondary {
-            background: white;
-            border: 1px solid var(--border);
-            color: var(--text);
-        }
-
-        .btn-secondary:hover { border-color: var(--primary); color: var(--primary); }
-
-        .btn-success {
-            background: var(--success);
-            color: white;
-        }
-
-        .btn-success:hover { background: #047857; }
-
-        .score-card {
-            background: white;
-            padding: 20px;
-            margin: 20px;
-            border-radius: 16px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .score-ring {
-            width: 80px; height: 80px;
-            border-radius: 50%;
-            background: conic-gradient(var(--success) calc(var(--score, 0) * 1%), #e5e7eb 0);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            font-weight: 700;
-            font-size: 24px;
-        }
-
-        .score-ring::before {
-            content: '';
-            position: absolute;
-            width: 64px; height: 64px;
-            background: white;
-            border-radius: 50%;
-        }
-
-        .score-number { position: relative; z-index: 1; }
-
-        .preview-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 40px;
-            background: #e5e7eb;
-        }
-
-        .resume-page {
-            width: 210mm;
-            min-height: 297mm;
-            background: white;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
-            padding: 20mm;
-            font-family: 'Calibri', 'Arial', sans-serif;
-            font-size: 11pt;
-            line-height: 1.4;
-        }
-
-        .resume-header {
-            border-bottom: 2px solid #1f2937;
-            padding-bottom: 16px;
-            margin-bottom: 20px;
-        }
-
-        .resume-name {
-            font-size: 24pt;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
             margin-bottom: 8px;
         }
 
-        .resume-contact {
-            font-size: 10.5pt;
-            color: #374151;
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
+        .bullet-score.excellent { background: #d1fae5; color: #065f46; }
+        .bullet-score.good { background: #fef3c7; color: #92400e; }
+        .bullet-score.needs-improvement { background: #fee2e2; color: #991b1b; }
+
+        .bullet-feedback {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed var(--border);
         }
 
-        .resume-section { margin-bottom: 20px; }
-        .resume-section-title {
-            font-size: 12pt;
-            font-weight: bold;
-            text-transform: uppercase;
-            border-bottom: 1px solid #1f2937;
-            padding-bottom: 4px;
-            margin-bottom: 12px;
+        .suggestion-chip {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #dbeafe;
+            color: #1e40af;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            margin: 4px 4px 0 0;
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
-        .experience-item { margin-bottom: 16px; }
-        .exp-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 4px;
-        }
-
-        .exp-title { font-weight: bold; font-size: 11.5pt; }
-        .exp-date { font-size: 10.5pt; color: #4b5563; font-style: italic; }
-        .exp-company { font-style: italic; font-size: 10.5pt; color: #374151; margin-bottom: 6px; }
-        .exp-desc { font-size: 10.5pt; }
-        .exp-desc ul { margin: 0; padding-left: 20px; }
-        .exp-desc li { margin-bottom: 4px; }
-
-        .skills-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .skill-item {
-            background: #f3f4f6;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 10.5pt;
-            border: 1px solid #e5e7eb;
-        }
-
-        .highlight { background: rgba(5, 150, 105, 0.2); padding: 0 2px; border-radius: 2px; }
-
-        .empty-state {
-            text-align: center;
-            color: #9ca3af;
-            padding-top: 100px;
-        }
-
-        /* Multi-select indicator */
-        .multi-select-mode {
-            background: #ecfdf5;
-            border-color: #6ee7b7;
-        }
-
-        .multi-select-mode .action-hint {
-            opacity: 1;
-            right: 12px;
-            background: #059669;
+        .suggestion-chip:hover {
+            background: var(--accent);
             color: white;
+        }
+
+        /* Category Breakdown */
+        .category-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .category-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 10px;
+        }
+
+        .category-name {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+        }
+
+        .category-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .category-status.pass { background: #d1fae5; color: #065f46; }
+        .category-status.warning { background: #fef3c7; color: #92400e; }
+        .category-status.fail { background: #fee2e2; color: #991b1b; }
+
+        /* Loading State */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255,255,255,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 20px;
+            z-index: 1000;
+        }
+
+        .loading-overlay.active { display: flex; }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .hidden { display: none !important; }
+
+        @media (max-width: 1024px) {
+            .container { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
-    <div class="welcome-overlay" id="welcomeScreen">
-        <div class="welcome-container">
-            <div style="font-size: 64px; margin-bottom: 20px;">📝</div>
-            <h1>ProResume AI</h1>
-            <p>Build a professional, ATS-optimized resume with intelligent multi-point selection</p>
-            <button class="btn-primary" onclick="startApplication()">Get Started →</button>
+    <nav class="navbar">
+        <div class="logo">📄 ResumeScanner AI</div>
+        <div class="nav-links">
+            <a href="#">Score Resume</a>
+            <a href="#">Targeted Resume</a>
+            <a href="#">LinkedIn Review</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Input Panel -->
+        <div class="input-panel">
+            <div class="panel-header">
+                <h2>Paste Your Resume</h2>
+                <p>We'll analyze your bullet points and give you actionable feedback to improve your resume.</p>
+            </div>
+
+            <div class="input-area">
+                <textarea id="resumeInput" placeholder="Paste your resume content here...
+
+Example format:
+• Led team of 5 developers to redesign company website
+• Increased sales revenue by 25% through strategic initiatives
+• Managed marketing campaigns with $500K budget
+
+Or paste your entire resume and we'll extract the bullet points automatically."></textarea>
+
+                <button class="analyze-btn" onclick="analyzeResume()" id="analyzeBtn">
+                    <span>🔍</span> Analyze Resume
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div class="results-panel" id="resultsPanel" style="display: none;">
+
+            <!-- Overall Score -->
+            <div class="score-card">
+                <div class="score-circle" id="scoreCircle" style="background: conic-gradient(var(--border) 0%, var(--border) 100%);">
+                    <span class="score-value" id="scoreValue">--</span>
+                </div>
+                <div class="score-label">Resume Score</div>
+                <div class="score-message" id="scoreMessage">Paste your resume to get started</div>
+            </div>
+
+            <!-- Quick Metrics -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value" id="bulletCount">--</div>
+                    <div class="metric-label">Bullet Points</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="weakWordCount">--</div>
+                    <div class="metric-label">Weak Words Found</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="metricCount">--</div>
+                    <div class="metric-label">With Metrics (%$#)</div>
+                </div>
+            </div>
+
+            <!-- Category Breakdown -->
+            <div class="analysis-section">
+                <div class="section-title">📊 Category Breakdown</div>
+                <div class="category-list" id="categoryList">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Bullet Analysis -->
+            <div class="analysis-section">
+                <div class="section-title">📝 Bullet Point Analysis</div>
+                <div id="bulletAnalysis">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Improvement Suggestions -->
+            <div class="analysis-section">
+                <div class="section-title">💡 Suggested Improvements</div>
+                <div id="improvementSuggestions">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="app-container" id="mainApp">
-        <div class="left-panel">
-            <div class="panel-header">
-                <div class="brand">
-                    <div class="brand-icon">📝</div>
-                    <div>
-                        <div style="font-weight: 600; font-size: 18px;">ProResume AI</div>
-                        <div style="font-size: 13px; opacity: 0.7;">Professional Builder</div>
-                    </div>
-                </div>
-                <div style="display: flex; gap: 8px;">
-                    <button class="icon-btn" onclick="resetApp()" title="Reset">↻</button>
-                    <button class="icon-btn" onclick="goBack()" id="backBtn" disabled title="Back">←</button>
-                </div>
-            </div>
-
-            <div class="progress-container">
-                <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px;">
-                    <span id="stepText">Step 1 of 10</span>
-                    <span id="percentText">10%</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-            </div>
-
-            <div class="chat-container" id="chatContainer"></div>
-
-            <div class="input-section">
-                <div style="margin-bottom: 8px; font-size: 13px; color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center;">
-                    <span id="inputHint">Press Enter to send</span>
-                    <span id="addModeIndicator" style="color: var(--success); font-weight: 600; display: none;">✓ Click suggestions to ADD (not replace)</span>
-                </div>
-                <div class="input-container">
-                    <textarea class="chat-input" id="messageInput" placeholder="Type your response..." rows="1"></textarea>
-                    <button class="send-button" onclick="sendMessage()">↑</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="right-panel">
-            <div class="preview-header">
-                <div style="font-weight: 600; font-size: 18px;">📄 Live Preview</div>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn-secondary" onclick="downloadWord()">💾 Word</button>
-                    <button class="btn-success" onclick="downloadPDF()">📄 PDF</button>
-                </div>
-            </div>
-
-            <div class="score-card">
-                <div class="score-ring" id="scoreRing" style="--score: 0;">
-                    <span class="score-number" id="scoreNumber">0</span>
-                </div>
-                <div>
-                    <h3 style="margin: 0 0 4px 0; font-size: 16px;">ATS Compatibility Score</h3>
-                    <p style="margin: 0; color: var(--text-secondary); font-size: 14px;" id="scoreDesc">Complete sections to improve score</p>
-                </div>
-            </div>
-
-            <div class="preview-container">
-                <div class="resume-page" id="resumePreview">
-                    <div class="empty-state">
-                        <div style="font-size: 64px; margin-bottom: 20px;">📄</div>
-                        <h3>Your Resume Preview</h3>
-                        <p>Start building to see your professional resume</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <p style="font-size: 18px; font-weight: 600; color: var(--text);">Analyzing your resume...</p>
+        <p style="color: var(--text-secondary);">Checking for weak words, metrics, and impact</p>
     </div>
 
     <script>
-        const AppState = {
-            currentStep: 0,
-            history: [],
-            data: {
-                targetRole: '', name: '', title: '', email: '', phone: '', location: '',
-                summary: '', experience: [], education: [], skills: []
-            },
-            currentExperience: null,
-            industry: 'general',
-            isAddMode: false  // New: tracks if we're in "add" mode for multi-select
-        };
-
-        const KeywordDB = {
-            software: ['JavaScript', 'Python', 'React', 'Node.js', 'AWS', 'Docker', 'SQL', 'Git', 'Agile', 'TypeScript'],
-            marketing: ['SEO', 'SEM', 'Google Analytics', 'Content Strategy', 'Social Media', 'CRM', 'Email Marketing', 'PPC'],
-            sales: ['B2B', 'CRM', 'Salesforce', 'Lead Generation', 'Negotiation', 'Account Management', 'Pipeline Management'],
-            general: ['Communication', 'Leadership', 'Project Management', 'Microsoft Office', 'Excel', 'Strategic Planning']
-        };
-
-        const SummaryTemplates = {
-            software: [
-                "Results-driven Software Engineer with 5+ years of experience designing scalable applications and implementing efficient solutions. Proficient in modern frameworks and cloud architecture with a proven track record of delivering high-quality code on time and within budget.",
-                "Innovative Full Stack Developer specializing in building responsive web applications and RESTful APIs. Experienced in Agile development environments with expertise in React, Node.js, and cloud technologies.",
-                "Detail-oriented Backend Engineer with expertise in database design, API development, and microservices architecture. Skilled in Python, SQL, and cloud platforms with strong problem-solving abilities."
+        // Resume Worded-style Analysis Logic
+        const AnalysisEngine = {
+            // Weak words that Resume Worded flags
+            weakWords: [
+                'responsible for', 'responsible', 'duties included', 'helped', 'assisted',
+                'worked on', 'participated in', 'involved in', 'handled', 'took care of',
+                'was tasked with', 'tasked with', 'in charge of', 'served as', 'acted as',
+                'dealt with', 'worked with', 'collaborated with', 'supported', 'aided',
+                'contributed to', 'played a role in', 'assisted with', 'helped with'
             ],
-            marketing: [
-                "Results-driven Marketing Manager with 6+ years of experience developing data-driven campaigns that increased revenue by 40%. Expert in digital strategy, SEO/SEM, and brand management.",
-                "Creative Content Strategist specializing in brand storytelling and audience engagement. Proven track record of managing successful social media campaigns and improving conversion rates.",
-                "Data-driven Digital Marketing Specialist with expertise in Google Analytics, PPC advertising, and marketing automation. Skilled at optimizing campaigns to maximize ROI."
-            ],
-            sales: [
-                "Top-performing Sales Representative with consistent record of exceeding quota by 150%. Expert in B2B sales, relationship building, and consultative selling.",
-                "Strategic Account Manager with 5+ years of experience managing enterprise client portfolios. Proven ability to identify opportunities and drive revenue growth.",
-                "Dynamic Business Development Manager skilled in lead generation, pipeline management, and sales strategy."
-            ],
-            general: [
-                "Results-driven professional with 5+ years of experience delivering exceptional results in fast-paced environments. Proven track record of increasing efficiency and leading high-performing teams.",
-                "Detail-oriented specialist with strong analytical and problem-solving skills. Experienced in managing complex projects and collaborating with cross-functional teams.",
-                "Versatile professional with expertise in project management and strategic planning."
-            ]
-        };
 
-        // INDIVIDUAL bullet suggestions for work experience (can select multiple)
-        const ExperienceBullets = [
-            "Led cross-functional team of 8 members to deliver project 2 weeks ahead of schedule",
-            "Increased revenue by 35% through implementation of new sales strategies",
-            "Reduced operational costs by 25% ($500K annually) through process optimization",
-            "Managed portfolio of 50+ enterprise clients with 98% retention rate",
-            "Developed and launched new product feature generating $2M in first year",
-            "Implemented automated testing reducing bug reports by 60%",
-            "Streamlined workflow processes improving team efficiency by 40%",
-            "Negotiated contracts worth $1.5M+ with key strategic partners",
-            "Trained and mentored 12 junior team members, improving team productivity by 30%",
-            "Architected scalable system handling 1M+ daily active users",
-            "Created data visualization dashboards used by C-level executives for decision making",
-            "Migrated legacy systems to cloud infrastructure reducing costs by 45%"
-        ];
-
-        const ConversationFlow = [
-            {
-                id: 'role',
-                question: "What job title are you targeting?",
-                suggestions: ['Software Engineer', 'Marketing Manager', 'Product Manager', 'Sales Representative', 'Data Analyst'],
-                field: 'targetRole',
-                onComplete: (val) => {
-                    const r = val.toLowerCase();
-                    if (r.includes('software') || r.includes('developer')) AppState.industry = 'software';
-                    else if (r.includes('marketing')) AppState.industry = 'marketing';
-                    else if (r.includes('sales')) AppState.industry = 'sales';
-                    else AppState.industry = 'general';
-                }
+            // Strong action verbs categorized
+            strongVerbs: {
+                leadership: ['Led', 'Managed', 'Directed', 'Supervised', 'Guided', 'Mentored', 'Trained', 'Coordinated'],
+                achievement: ['Achieved', 'Exceeded', 'Surpassed', 'Outperformed', 'Delivered', 'Attained', 'Secured'],
+                creation: ['Created', 'Developed', 'Designed', 'Built', 'Implemented', 'Established', 'Launched', 'Pioneered'],
+                improvement: ['Improved', 'Enhanced', 'Optimized', 'Streamlined', 'Refined', 'Upgraded', 'Transformed', 'Revamped'],
+                analysis: ['Analyzed', 'Evaluated', 'Assessed', 'Examined', 'Investigated', 'Researched', 'Audited'],
+                communication: ['Presented', 'Negotiated', 'Collaborated', 'Facilitated', 'Liaised', 'Authored', 'Composed']
             },
-            {
-                id: 'name',
-                question: "What's your full name?",
-                field: 'name'
+
+            // All strong verbs combined
+            allStrongVerbs: function() {
+                return Object.values(this.strongVerbs).flat();
             },
-            {
-                id: 'title',
-                question: "What professional title should appear on your resume?",
-                field: 'title'
+
+            // Check if bullet starts with strong verb
+            startsWithStrongVerb: function(text) {
+                const firstWord = text.trim().split(/\s+/)[0].replace(/[^a-zA-Z]/g, '');
+                return this.allStrongVerbs().some(verb =>
+                    verb.toLowerCase() === firstWord.toLowerCase()
+                );
             },
-            {
-                id: 'email',
-                question: "Your email address?",
-                field: 'email'
+
+            // Get verb suggestion
+            suggestStrongVerb: function(text) {
+                const verbs = this.allStrongVerbs();
+                // Return 3 random strong verbs as suggestions
+                return verbs.sort(() => 0.5 - Math.random()).slice(0, 3);
             },
-            {
-                id: 'phone',
-                question: "Phone number?",
-                field: 'phone'
+
+            // Check for metrics (numbers, %, $, etc.)
+            hasMetrics: function(text) {
+                return /\d+%|\$\d+|\d+\s*(million|thousand|hundred|k|m)|\d+\s*(users|customers|clients|team members|people|years|months|weeks|days)|increased by \d+|decreased by \d+|improved by \d+/i.test(text);
             },
-            {
-                id: 'location',
-                question: "Your location?",
-                field: 'location'
+
+            // Extract metrics
+            extractMetrics: function(text) {
+                const matches = text.match(/\d+%|\$\d+[kmb]?|\d+\s*(million|thousand|hundred|k|m)|\d+\s*(users|customers|clients|team members)/gi) || [];
+                return matches;
             },
-            {
-                id: 'summary',
-                question: "Write your Professional Summary. Choose a template or write your own:",
-                isParagraph: true,
-                getSuggestions: () => SummaryTemplates[AppState.industry] || SummaryTemplates.general,
-                field: 'summary'
+
+            // Check for weak words
+            findWeakWords: function(text) {
+                return this.weakWords.filter(word =>
+                    text.toLowerCase().includes(word.toLowerCase())
+                );
             },
-            {
-                id: 'exp1_title',
-                question: "Most recent job title?",
-                onComplete: (val) => { AppState.currentExperience = {title: val, company: '', date: '', description: ''}; }
-            },
-            {
-                id: 'exp1_company',
-                question: "Company name?",
-                onComplete: (val) => { AppState.currentExperience.company = val; }
-            },
-            {
-                id: 'exp1_date',
-                question: "Dates employed?",
-                onComplete: (val) => { AppState.currentExperience.date = val; }
-            },
-            {
-                id: 'exp1_desc',
-                question: "Add your achievements. CLICK MULTIPLE suggestions below to build your list, or type your own bullets:",
-                isParagraph: true,
-                isMultiSelect: true,  // KEY: Enables add mode
-                suggestions: ExperienceBullets,
-                onComplete: (val) => {
-                    AppState.currentExperience.description = val;
-                    AppState.data.experience.push({...AppState.currentExperience});
-                }
-            },
-            {
-                id: 'exp_more',
-                question: "Add another position?",
-                options: ['Yes, add another job', 'No, continue to education'],
-                handler: (val) => {
-                    if (val.includes('Yes')) {
-                        setTimeout(() => jumpToStep(7), 300);
-                        return false;
-                    }
-                    return true;
-                }
-            },
-            {
-                id: 'edu_degree',
-                question: "Highest degree?",
-                onComplete: (val) => { AppState.data.education.push({degree: val, school: '', date: ''}); }
-            },
-            {
-                id: 'edu_school',
-                question: "University?",
-                onComplete: (val) => { AppState.data.education[AppState.data.education.length-1].school = val; }
-            },
-            {
-                id: 'edu_date',
-                question: "Graduation year?",
-                onComplete: (val) => { AppState.data.education[AppState.data.education.length-1].date = val; }
-            },
-            {
-                id: 'skills',
-                question: "List your skills (comma separated):",
-                getSuggestions: () => [KeywordDB[AppState.industry].slice(0, 8).join(', ')],
-                field: 'skills'
-            }
-        ];
 
-        function startApplication() {
-            document.getElementById('welcomeScreen').style.display = 'none';
-            document.getElementById('mainApp').classList.add('active');
+            // Calculate bullet score (0-100)
+            scoreBullet: function(text) {
+                let score = 50; // Base score
+                const issues = [];
+                const strengths = [];
 
-            const textarea = document.getElementById('messageInput');
-            textarea.addEventListener('input', function() {
-                this.style.height = 'auto';
-                this.style.height = Math.min(this.scrollHeight, 200) + 'px';
-            });
-
-            textarea.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                }
-            });
-
-            renderStep();
-        }
-
-        function renderStep() {
-            const step = ConversationFlow[AppState.currentStep];
-            if (!step) {
-                completeResume();
-                return;
-            }
-
-            // Reset add mode
-            AppState.isAddMode = step.isMultiSelect || false;
-            updateInputUI();
-
-            // Update progress
-            const percent = Math.round(((AppState.currentStep + 1) / ConversationFlow.length) * 100);
-            document.getElementById('stepText').textContent = `Step ${AppState.currentStep + 1} of ${ConversationFlow.length}`;
-            document.getElementById('percentText').textContent = `${percent}%`;
-            document.getElementById('progressFill').style.width = `${percent}%`;
-            document.getElementById('backBtn').disabled = AppState.history.length === 0;
-
-            // Render message
-            const container = document.getElementById('chatContainer');
-            const wrapper = document.createElement('div');
-            wrapper.className = 'message-wrapper message-ai';
-
-            let html = `<div class="message-bubble"><strong>Step ${AppState.currentStep + 1}</strong><br><br>${step.question}</div>`;
-
-            let suggestions = step.suggestions || [];
-            if (step.getSuggestions) suggestions = step.getSuggestions();
-
-            if (suggestions.length > 0) {
-                html += `<div class="suggestions-wrapper">
-                    <div class="suggestions-header">
-                        ${step.isMultiSelect ? '☑️ Click to ADD multiple points:' : '💡 Suggested Responses:'}
-                    </div>
-                    <div class="suggestion-list">`;
-
-                suggestions.forEach((s, idx) => {
-                    const safeText = s.replace(/'/g, "\\'");
-                    // For multi-select, show "Add" hint, for single select show "Use"
-                    const hintText = step.isMultiSelect ? '+ ADD' : 'Use →';
-                    const cardClass = step.isMultiSelect ? 'suggestion-card multi-select-mode' : 'suggestion-card';
-
-                    html += `<div class="${cardClass}" onclick="handleSuggestionClick('${safeText}', ${step.isMultiSelect || false})">
-                        <strong>${step.isMultiSelect ? 'Achievement ' + (idx + 1) : 'Template ' + (idx + 1)}</strong>
-                        ${s}
-                        <span class="action-hint">${hintText}</span>
-                    </div>`;
-                });
-
-                html += `</div></div>`;
-
-                if (step.isMultiSelect) {
-                    html += `<div style="margin-left: 12px; margin-top: 12px; padding: 12px; background: #f0fdf4; border-radius: 8px; border: 1px solid #86efac; font-size: 13px; color: #065f46;">
-                        <strong>💡 Tip:</strong> Click multiple suggestions above to build your achievement list. Each click adds a new bullet point. Click Send when done.
-                    </div>`;
-                }
-            }
-
-            if (step.options) {
-                html += `<div class="suggestions-wrapper" style="margin-top: 12px;">
-                    <div class="suggestions-header" style="color: #7c3aed;">Options</div>
-                    <div class="suggestion-list">`;
-                step.options.forEach(opt => {
-                    const safeOpt = opt.replace(/'/g, "\\'");
-                    html += `<div class="suggestion-card" style="border-color: #e9d5ff; background: #faf5ff;" onclick="handleSuggestionClick('${safeOpt}', false)">
-                        <strong style="color: #7c3aed;">Action</strong>
-                        ${opt}
-                        <span class="action-hint" style="background: #7c3aed; color: white;">Select →</span>
-                    </div>`;
-                });
-                html += `</div></div>`;
-            }
-
-            wrapper.innerHTML = html;
-            container.appendChild(wrapper);
-            container.scrollTop = container.scrollHeight;
-
-            document.getElementById('messageInput').placeholder = step.isMultiSelect ? "Your achievements will appear here (click suggestions above to add)..." : "Type your answer...";
-            document.getElementById('messageInput').focus();
-        }
-
-        function updateInputUI() {
-            const indicator = document.getElementById('addModeIndicator');
-            const hint = document.getElementById('inputHint');
-
-            if (AppState.isAddMode) {
-                indicator.style.display = 'block';
-                hint.textContent = 'Click suggestions above to add bullet points';
-            } else {
-                indicator.style.display = 'none';
-                hint.textContent = 'Press Enter to send';
-            }
-        }
-
-        // KEY FUNCTION: Handles suggestion clicks differently based on mode
-        function handleSuggestionClick(text, isAddMode) {
-            const input = document.getElementById('messageInput');
-
-            if (isAddMode) {
-                // ADD MODE: Append with bullet point
-                let currentVal = input.value.trim();
-                let newBullet = text;
-
-                // Add bullet prefix if not present
-                if (!newBullet.startsWith('•') && !newBullet.startsWith('-')) {
-                    newBullet = '• ' + newBullet;
-                }
-
-                if (currentVal) {
-                    // Append with new line
-                    input.value = currentVal + '\n' + newBullet;
+                // Check length (Resume Worded prefers 1-2 lines)
+                const wordCount = text.split(/\s+/).length;
+                if (wordCount < 8) {
+                    score -= 10;
+                    issues.push('Too short - add more detail');
+                } else if (wordCount > 25) {
+                    score -= 5;
+                    issues.push('Consider making this more concise');
                 } else {
-                    input.value = newBullet;
+                    score += 5;
+                    strengths.push('Good length');
                 }
 
-                // Visual feedback
-                input.style.background = '#f0fdf4';
-                setTimeout(() => {
-                    input.style.background = '';
-                }, 300);
+                // Check for strong verb
+                if (this.startsWithStrongVerb(text)) {
+                    score += 20;
+                    strengths.push('Strong action verb');
+                } else {
+                    score -= 15;
+                    issues.push('Start with a strong action verb (Led, Managed, Created, etc.)');
+                }
 
-            } else {
-                // REPLACE MODE: Set value directly
-                input.value = text;
+                // Check for metrics
+                if (this.hasMetrics(text)) {
+                    score += 25;
+                    strengths.push('Contains quantifiable metrics');
+                } else {
+                    score -= 20;
+                    issues.push('Add metrics (%, $, #) to show impact');
+                }
+
+                // Check for weak words
+                const weakWordsFound = this.findWeakWords(text);
+                if (weakWordsFound.length > 0) {
+                    score -= 15;
+                    issues.push(`Remove weak words: "${weakWordsFound.join(', ')}"`);
+                }
+
+                // Check for repetition (simplified)
+                if (text.toLowerCase().includes('various') || text.toLowerCase().includes('different')) {
+                    score -= 5;
+                    issues.push('Be specific instead of using "various" or "different"');
+                }
+
+                return {
+                    score: Math.max(0, Math.min(100, score)),
+                    grade: score >= 80 ? 'excellent' : score >= 60 ? 'good' : 'needs-improvement',
+                    issues: issues,
+                    strengths: strengths,
+                    metrics: this.extractMetrics(text),
+                    weakWords: weakWordsFound,
+                    suggestedVerbs: this.suggestStrongVerb(text)
+                };
+            },
+
+            // Analyze full resume
+            analyze: function(text) {
+                // Extract bullet points (lines starting with •, -, or *)
+                const lines = text.split('\n').filter(line => line.trim());
+                const bullets = lines.filter(line =>
+                    /^[\s]*[•\-*]\s+/.test(line) ||
+                    (line.trim().length > 20 && !line.includes(':'))
+                ).map(line => line.replace(/^[\s]*[•\-*]\s*/, '').trim());
+
+                // If no bullets found, treat non-empty lines as bullets
+                const bulletPoints = bullets.length > 0 ? bullets : lines.filter(l => l.trim().length > 10);
+
+                const results = bulletPoints.map(bullet => ({
+                    text: bullet,
+                    analysis: this.scoreBullet(bullet)
+                }));
+
+                // Calculate overall score
+                const avgScore = results.length > 0
+                    ? results.reduce((sum, r) => sum + r.analysis.score, 0) / results.length
+                    : 0;
+
+                // Category checks
+                const categories = {
+                    actionVerbs: results.filter(r => r.analysis.strengths.includes('Strong action verb')).length,
+                    metrics: results.filter(r => r.analysis.strengths.includes('Contains quantifiable metrics')).length,
+                    weakWords: results.filter(r => r.analysis.weakWords.length > 0).length,
+                    length: results.filter(r => r.analysis.issues.some(i => i.includes('Too short'))).length
+                };
+
+                return {
+                    overallScore: Math.round(avgScore),
+                    bulletCount: results.length,
+                    bullets: results,
+                    categories: categories,
+                    totalWeakWords: results.reduce((sum, r) => sum + r.analysis.weakWords.length, 0),
+                    totalMetrics: results.filter(r => r.analysis.metrics.length > 0).length
+                };
             }
+        };
 
-            // Resize
-            input.style.height = 'auto';
-            input.style.height = Math.min(input.scrollHeight, 200) + 'px';
-            input.focus();
-        }
-
-        function sendMessage() {
-            const input = document.getElementById('messageInput');
+        async function analyzeResume() {
+            const input = document.getElementById('resumeInput');
             const text = input.value.trim();
-            if (!text) return;
 
-            const container = document.getElementById('chatContainer');
-            const userDiv = document.createElement('div');
-            userDiv.className = 'message-wrapper message-user';
-            userDiv.innerHTML = `<div class="message-bubble">${escapeHtml(text).replace(/\n/g, '<br>')}</div>`;
-            container.appendChild(userDiv);
-            container.scrollTop = container.scrollHeight;
-
-            input.value = '';
-            input.style.height = 'auto';
-
-            const step = ConversationFlow[AppState.currentStep];
-
-            if (step.field) {
-                if (step.field === 'skills') {
-                    AppState.data.skills = text.split(',').map(s => s.trim()).filter(s => s);
-                } else {
-                    AppState.data[step.field] = text;
-                }
-            }
-            if (step.onComplete) step.onComplete(text);
-
-            let shouldAdvance = true;
-            if (step.handler) shouldAdvance = step.handler(text);
-
-            if (shouldAdvance) {
-                AppState.history.push(AppState.currentStep);
-                AppState.currentStep++;
-                setTimeout(() => {
-                    renderStep();
-                    updatePreview();
-                    calculateScore();
-                }, 600);
-            }
-        }
-
-        function goBack() {
-            if (AppState.history.length > 0) {
-                AppState.currentStep = AppState.history.pop();
-                renderStep();
-            }
-        }
-
-        function jumpToStep(index) {
-            AppState.history.push(AppState.currentStep);
-            AppState.currentStep = index;
-            renderStep();
-        }
-
-        function resetApp() {
-            if (confirm('Start over?')) location.reload();
-        }
-
-        function updatePreview() {
-            const d = AppState.data;
-            const preview = document.getElementById('resumePreview');
-
-            if (!d.name) {
-                preview.innerHTML = `<div class="empty-state"><div style="font-size: 64px;">📄</div><h3>Your Resume Preview</h3><p>Start building to see your professional resume</p></div>`;
+            if (!text) {
+                alert('Please paste your resume content first');
                 return;
             }
 
-            let html = `
-                <div class="resume-header">
-                    <div class="resume-name">${escapeHtml(d.name)}</div>
-                    <div class="resume-contact">
-                        ${d.email || ''} ${d.phone ? '• ' + d.phone : ''} ${d.location ? '• ' + d.location : ''}
+            // Show loading
+            document.getElementById('loadingOverlay').classList.add('active');
+
+            // Simulate processing delay (like Resume Worded)
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            // Run analysis
+            const results = AnalysisEngine.analyze(text);
+
+            // Hide loading
+            document.getElementById('loadingOverlay').classList.remove('active');
+
+            // Show results
+            document.getElementById('resultsPanel').style.display = 'flex';
+
+            // Update score
+            updateScoreDisplay(results.overallScore);
+
+            // Update metrics
+            document.getElementById('bulletCount').textContent = results.bulletCount;
+            document.getElementById('bulletCount').className = 'metric-value ' + (results.bulletCount >= 3 ? 'good' : 'warning');
+
+            document.getElementById('weakWordCount').textContent = results.totalWeakWords;
+            document.getElementById('weakWordCount').className = 'metric-value ' + (results.totalWeakWords === 0 ? 'good' : results.totalWeakWords < 3 ? 'warning' : 'danger');
+
+            document.getElementById('metricCount').textContent = results.totalMetrics + '/' + results.bulletCount;
+            document.getElementById('metricCount').className = 'metric-value ' + (results.totalMetrics >= results.bulletCount * 0.7 ? 'good' : 'warning');
+
+            // Render categories
+            renderCategories(results);
+
+            // Render bullet analysis
+            renderBulletAnalysis(results.bullets);
+
+            // Render suggestions
+            renderSuggestions(results.bullets);
+
+            // Scroll to results
+            document.getElementById('resultsPanel').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function updateScoreDisplay(score) {
+            const circle = document.getElementById('scoreCircle');
+            const value = document.getElementById('scoreValue');
+            const message = document.getElementById('scoreMessage');
+
+            // Animate score
+            let current = 0;
+            const increment = score / 50;
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= score) {
+                    current = score;
+                    clearInterval(timer);
+                }
+                value.textContent = Math.round(current);
+
+                // Update circle color based on score
+                let color = '#ef4444'; // red
+                let messageClass = 'needs-work';
+                let messageText = 'Needs Improvement';
+
+                if (score >= 80) {
+                    color = '#10b981'; // green
+                    messageClass = 'excellent';
+                    messageText = 'Excellent! ATS Ready';
+                } else if (score >= 60) {
+                    color = '#f59e0b'; // yellow
+                    messageClass = 'good';
+                    messageText = 'Good, but can be improved';
+                }
+
+                circle.style.background = `conic-gradient(${color} ${(current / 100) * 360}deg, #e2e8f0 0deg)`;
+                message.className = 'score-message ' + messageClass;
+                message.textContent = messageText;
+            }, 20);
+        }
+
+        function renderCategories(results) {
+            const container = document.getElementById('categoryList');
+
+            const categories = [
+                { name: 'Strong Action Verbs', icon: '⚡', pass: results.categories.actionVerbs >= results.bulletCount * 0.8 },
+                { name: 'Quantifiable Metrics', icon: '📊', pass: results.categories.metrics >= results.bulletCount * 0.7 },
+                { name: 'No Weak Words', icon: '✓', pass: results.categories.weakWords === 0 },
+                { name: 'Optimal Length', icon: '📝', pass: results.categories.length === 0 }
+            ];
+
+            container.innerHTML = categories.map(cat => `
+                <div class="category-item">
+                    <div class="category-name">
+                        <span style="font-size: 20px;">${cat.icon}</span>
+                        <span>${cat.name}</span>
+                    </div>
+                    <div class="category-status ${cat.pass ? 'pass' : 'fail'}">
+                        ${cat.pass ? '✓ Pass' : '✗ Needs Work'}
                     </div>
                 </div>
-            `;
+            `).join('');
+        }
 
-            if (d.summary) {
-                html += `<div class="resume-section">
-                    <div class="resume-section-title">Professional Summary</div>
-                    <div style="font-size: 11pt; line-height: 1.5;">${formatText(d.summary)}</div>
-                </div>`;
+        function renderBulletAnalysis(bullets) {
+            const container = document.getElementById('bulletAnalysis');
+
+            if (bullets.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-secondary);">No bullet points detected. Try formatting with • or - at the start of each line.</p>';
+                return;
             }
 
-            if (d.experience.length > 0) {
-                html += `<div class="resume-section">
-                    <div class="resume-section-title">Professional Experience</div>`;
-                d.experience.forEach(exp => {
-                    html += `<div class="experience-item">
-                        <div class="exp-header">
-                            <span class="exp-title">${escapeHtml(exp.title)}</span>
-                            <span class="exp-date">${escapeHtml(exp.date)}</span>
-                        </div>
-                        <div class="exp-company">${escapeHtml(exp.company)}</div>
-                        <div class="exp-desc">${formatText(exp.description)}</div>
+            container.innerHTML = bullets.map((item, index) => {
+                const analysis = item.analysis;
+                const scoreClass = analysis.grade;
+
+                let feedbackHtml = '';
+
+                if (analysis.strengths.length > 0) {
+                    feedbackHtml += `<div style="color: var(--success); margin-bottom: 4px;">✓ ${analysis.strengths.join(', ')}</div>`;
+                }
+
+                if (analysis.issues.length > 0) {
+                    feedbackHtml += analysis.issues.map(issue =>
+                        `<div style="color: var(--danger); margin-bottom: 4px;">• ${issue}</div>`
+                    ).join('');
+                }
+
+                if (analysis.suggestedVerbs.length > 0 && analysis.grade !== 'excellent') {
+                    feedbackHtml += `<div style="margin-top: 8px; font-size: 13px; color: var(--text-secondary);">
+                        <strong>Suggested verbs:</strong> ${analysis.suggestedVerbs.join(', ')}
                     </div>`;
-                });
-                html += `</div>`;
-            }
+                }
 
-            if (d.education.length > 0) {
-                html += `<div class="resume-section">
-                    <div class="resume-section-title">Education</div>`;
-                d.education.forEach(edu => {
-                    html += `<div class="education-item">
-                        <div class="exp-header">
-                            <span class="exp-title">${escapeHtml(edu.degree)}</span>
-                            <span class="exp-date">${escapeHtml(edu.date)}</span>
+                return `
+                    <div class="bullet-item ${scoreClass}">
+                        <div class="bullet-score ${scoreClass}">
+                            ${analysis.score}/100
                         </div>
-                        <div class="exp-company">${escapeHtml(edu.school)}</div>
-                    </div>`;
-                });
-                html += `</div>`;
-            }
-
-            if (d.skills.length > 0) {
-                html += `<div class="resume-section">
-                    <div class="resume-section-title">Skills</div>
-                    <div class="skills-container">
-                        ${d.skills.map(s => `<span class="skill-item">${escapeHtml(s)}</span>`).join('')}
+                        <div class="bullet-text">${escapeHtml(item.text)}</div>
+                        ${analysis.metrics.length > 0 ? `<div style="margin-top: 8px; font-size: 13px; color: var(--success);">📊 Metrics found: ${analysis.metrics.join(', ')}</div>` : ''}
+                        <div class="bullet-feedback">${feedbackHtml}</div>
                     </div>
-                </div>`;
+                `;
+            }).join('');
+        }
+
+        function renderSuggestions(bullets) {
+            const container = document.getElementById('improvementSuggestions');
+
+            // Find bullets that need improvement
+            const needsWork = bullets.filter(b => b.analysis.grade !== 'excellent');
+
+            if (needsWork.length === 0) {
+                container.innerHTML = '<p style="color: var(--success); font-weight: 500;">🎉 Great job! All your bullet points look excellent.</p>';
+                return;
             }
 
-            preview.innerHTML = html;
-        }
+            // Generate specific suggestions
+            const suggestions = [];
 
-        function formatText(text) {
-            if (!text) return '';
-            // If it contains bullets, format as list
-            if (text.includes('•') || text.includes('-')) {
-                const items = text.split('\n').filter(line => line.trim());
-                return '<ul style="margin: 0; padding-left: 20px;">' +
-                    items.map(item => {
-                        const clean = item.replace(/^[•\-]\s*/, '').trim();
-                        return clean ? `<li style="margin-bottom: 4px;">${highlightKeywords(escapeHtml(clean))}</li>` : '';
-                    }).join('') +
-                '</ul>';
-            }
-            return highlightKeywords(escapeHtml(text)).replace(/\n/g, '<br>');
-        }
+            needsWork.forEach(bullet => {
+                const text = bullet.text;
+                const analysis = bullet.analysis;
 
-        function highlightKeywords(text) {
-            const keywords = KeywordDB[AppState.industry] || KeywordDB.general;
-            keywords.forEach(kw => {
-                const regex = new RegExp(`\\b${kw}\\b`, 'gi');
-                text = text.replace(regex, match => `<span class="highlight">${match}</span>`);
+                if (!analysis.strengths.includes('Strong action verb')) {
+                    const verbs = analysis.suggestedVerbs;
+                    suggestions.push({
+                        original: text.split(/\s+/).slice(0, 5).join(' ') + '...',
+                        suggestion: `${verbs[0]} ${text.toLowerCase().replace(/^\w+\s*/, '')}`,
+                        reason: 'Start with a strong action verb'
+                    });
+                }
+
+                if (!analysis.strengths.includes('Contains quantifiable metrics')) {
+                    suggestions.push({
+                        original: text.split(/\s+/).slice(0, 5).join(' ') + '...',
+                        suggestion: text + ' resulting in 25% improvement in efficiency',
+                        reason: 'Add quantifiable impact (%, $, #)'
+                    });
+                }
             });
-            return text;
+
+            // Show top 5 suggestions
+            container.innerHTML = suggestions.slice(0, 5).map((s, i) => `
+                <div style="margin-bottom: 16px; padding: 16px; background: #f0f9ff; border-radius: 8px; border-left: 4px solid var(--accent);">
+                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">
+                        <strong>Issue:</strong> ${s.reason}
+                    </div>
+                    <div style="font-size: 14px; margin-bottom: 8px; text-decoration: line-through; color: #991b1b;">
+                        ${escapeHtml(s.original)}
+                    </div>
+                    <div style="font-size: 14px; color: var(--success); font-weight: 500; margin-bottom: 8px;">
+                        ${escapeHtml(s.suggestion)}
+                    </div>
+                    <button class="suggestion-chip" onclick="copyToClipboard('${escapeHtml(s.suggestion)}')">
+                        📋 Copy improved version
+                    </button>
+                </div>
+            `).join('');
         }
 
-        function calculateScore() {
-            let score = 0;
-            const d = AppState.data;
-
-            if (d.name) score += 15;
-            if (d.title) score += 10;
-            if (d.email && d.phone) score += 10;
-            if (d.summary) score += 20;
-            if (d.experience.length > 0) score += 25;
-            if (d.education.length > 0) score += 10;
-            if (d.skills.length > 0) score += 10;
-
-            const content = `${d.summary} ${d.experience.map(e => e.description).join(' ')} ${d.skills.join(' ')}`.toLowerCase();
-            const industryKeywords = KeywordDB[AppState.industry] || KeywordDB.general;
-            const matches = industryKeywords.filter(k => content.includes(k.toLowerCase()));
-            score += Math.min(25, matches.length * 2);
-
-            const finalScore = Math.min(100, score);
-            document.getElementById('scoreNumber').textContent = finalScore;
-            document.getElementById('scoreRing').style.setProperty('--score', finalScore);
-
-            let desc = 'Keep going...';
-            if (finalScore >= 80) desc = 'Excellent! ATS Ready';
-            else if (finalScore >= 60) desc = 'Good progress';
-            document.getElementById('scoreDesc').textContent = desc;
-        }
-
-        function completeResume() {
-            const container = document.getElementById('chatContainer');
-            const div = document.createElement('div');
-            div.className = 'message-wrapper message-ai';
-            div.innerHTML = `<div class="message-bubble" style="background: #ecfdf5; border-color: #6ee7b7;">
-                <strong style="color: #065f46; font-size: 18px;">🎉 Resume Complete!</strong><br><br>
-                Your ATS Score: <strong>${document.getElementById('scoreNumber').textContent}/100</strong><br><br>
-                Your resume is ready for download!
-            </div>`;
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function downloadPDF() {
-            const element = document.getElementById('resumePreview');
-            const btn = event.target;
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '⏳ Generating...';
-            btn.disabled = true;
-
-            html2canvas(element, { scale: 2, useCORS: true }).then(canvas => {
-                const imgData = canvas.toDataURL('image/png');
-                const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-                const imgWidth = 210;
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, Math.min(imgHeight, 297));
-                pdf.save(`${AppState.data.name.replace(/\s+/g, '_')}_Resume.pdf`);
-
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }).catch(err => {
-                alert('Error generating PDF. Please try again.');
-                btn.innerHTML = originalText;
-                btn.disabled = false;
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copied to clipboard!');
             });
-        }
-
-        function downloadWord() {
-            const d = AppState.data;
-            let content = `
-                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-                <head><meta charset='utf-8'><title>Resume</title></head>
-                <body>
-                <h1>${d.name}</h1>
-                <p>${d.email} ${d.phone ? '| ' + d.phone : ''} ${d.location ? '| ' + d.location : ''}</p>
-                <h2>Professional Summary</h2>
-                <p>${d.summary}</p>
-                <h2>Experience</h2>
-                ${d.experience.map(e => `
-                    <h3>${e.title}</h3>
-                    <p><em>${e.company}</em> | ${e.date}</p>
-                    <p>${e.description.replace(/\n/g, '<br>')}</p>
-                `).join('')}
-                <h2>Education</h2>
-                ${d.education.map(e => `
-                    <h3>${e.degree}</h3>
-                    <p><em>${e.school}</em>, ${e.date}</p>
-                `).join('')}
-                <h2>Skills</h2>
-                <p>${d.skills.join(' • ')}</p>
-                </body></html>
-            `;
-
-            const blob = new Blob(['\ufeff', content], { type: 'application/msword' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${d.name.replace(/\s+/g, '_')}_Resume.doc`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
         }
 
         function escapeHtml(text) {
-            if (!text) return '';
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
