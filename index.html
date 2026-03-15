@@ -121,6 +121,8 @@
             font-size: 0.95rem;
             line-height: 1.5;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            max-width: 100%;
+            word-wrap: break-word;
         }
 
         .bot-message .message-bubble {
@@ -168,6 +170,8 @@
             cursor: pointer;
             transition: all 0.2s;
             font-weight: 500;
+            text-align: left;
+            line-height: 1.4;
         }
 
         .chip:hover {
@@ -187,6 +191,13 @@
             color: white;
         }
 
+        .chip.full-sentence {
+            width: 100%;
+            margin-bottom: 0.5rem;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+        }
+
         .input-container {
             padding: 1rem;
             background: white;
@@ -200,6 +211,7 @@
             padding: 0.5rem;
             border-radius: 12px;
             border: 2px solid var(--border);
+            align-items: flex-end;
         }
 
         .input-wrapper:focus-within {
@@ -215,6 +227,9 @@
             font-size: 0.95rem;
             outline: none;
             font-family: inherit;
+            resize: none;
+            min-height: 24px;
+            max-height: 120px;
         }
 
         .send-btn {
@@ -226,6 +241,7 @@
             border: none;
             cursor: pointer;
             font-size: 1.2rem;
+            flex-shrink: 0;
         }
 
         .send-btn:hover { background: #3730a3; }
@@ -341,6 +357,12 @@
             border-bottom: 0.5pt solid #000;
             margin-bottom: 6pt;
             padding-bottom: 2pt;
+        }
+
+        .summary-text {
+            font-size: 10.5pt;
+            line-height: 1.4;
+            text-align: justify;
         }
 
         .entry { margin-bottom: 8pt; }
@@ -464,7 +486,7 @@
 
             <div class="input-container">
                 <div class="input-wrapper">
-                    <input type="text" class="chat-input" id="userInput" placeholder="Type your response..." onkeypress="if(event.key==='Enter')handleSend()">
+                    <textarea class="chat-input" id="userInput" placeholder="Type your response..." rows="1"></textarea>
                     <button class="send-btn" onclick="handleSend()">↑</button>
                 </div>
             </div>
@@ -517,9 +539,33 @@
             general: ['Communication', 'Leadership', 'Project Management', 'Microsoft Office', 'Excel', 'Strategic Planning']
         };
 
-        const actionWords = ['Led', 'Managed', 'Developed', 'Created', 'Implemented', 'Increased', 'Reduced', 'Improved', 'Designed', 'Launched'];
+        // Summary templates - FULL SENTENCES not single words
+        const summaryTemplates = {
+            software: [
+                "Results-driven Software Engineer with 5+ years of experience designing scalable applications and implementing efficient solutions. Proficient in React, Node.js, and cloud architecture with a proven track record of delivering high-quality code.",
+                "Innovative Full Stack Developer specializing in building responsive web applications and RESTful APIs. Experienced in Agile development environments and passionate about writing clean, maintainable code.",
+                "Detail-oriented Backend Engineer with expertise in database design, API development, and microservices architecture. Skilled in Python, SQL, and cloud platforms with strong problem-solving abilities."
+            ],
+            marketing: [
+                "Results-driven Marketing Manager with 6+ years of experience developing data-driven campaigns that increased revenue by 40%. Expert in digital strategy, SEO/SEM, and brand management with strong analytical skills.",
+                "Creative Content Strategist specializing in brand storytelling and audience engagement. Proven track record of managing successful social media campaigns and improving conversion rates through targeted marketing initiatives.",
+                "Data-driven Digital Marketing Specialist with expertise in Google Analytics, PPC advertising, and marketing automation. Skilled at optimizing campaigns to maximize ROI and drive customer acquisition."
+            ],
+            sales: [
+                "Top-performing Sales Representative with consistent record of exceeding quota by 150%. Expert in B2B sales, relationship building, and consultative selling with strong negotiation and closing skills.",
+                "Strategic Account Manager with 5+ years of experience managing enterprise client portfolios. Proven ability to identify opportunities, build long-term relationships, and drive revenue growth.",
+                "Dynamic Business Development Manager skilled in lead generation, pipeline management, and sales strategy. Track record of opening new markets and establishing profitable partnerships."
+            ],
+            general: [
+                "Results-driven professional with 5+ years of experience delivering exceptional results in fast-paced environments. Proven track record of increasing efficiency and leading high-performing teams.",
+                "Detail-oriented specialist with strong analytical and problem-solving skills. Experienced in managing complex projects, collaborating with cross-functional teams, and driving process improvements.",
+                "Versatile professional with expertise in project management and strategic planning. Skilled at communicating with stakeholders, managing timelines, and delivering projects on budget."
+            ]
+        };
 
-        // Steps - Clean and Simple
+        const actionWords = ['Led', 'Managed', 'Developed', 'Created', 'Implemented', 'Increased', 'Reduced', 'Improved'];
+
+        // Steps
         const steps = [
             {
                 id: 'role',
@@ -555,8 +601,12 @@
             },
             {
                 id: 'summary',
-                question: "Write a professional summary (2-3 sentences about your experience and strengths).",
-                suggestions: actionWords.slice(0, 5),
+                question: "Write a professional summary (2-3 sentences). Click a template below or write your own:",
+                isParagraph: true,
+                getSuggestions: () => {
+                    const ind = detectIndustry(state.data.targetRole);
+                    return summaryTemplates[ind] || summaryTemplates.general;
+                },
                 field: 'summary'
             },
             {
@@ -578,8 +628,8 @@
             {
                 id: 'exp_desc',
                 question: "Describe your achievements. Use action verbs and numbers!",
-                suggestions: ['Led team of 5', 'Increased revenue by 20%', 'Implemented new system', 'Reduced costs by 15%'],
-                multiline: true,
+                suggestions: ['Led team of 5 developers', 'Increased revenue by 25%', 'Implemented CI/CD pipeline', 'Reduced loading time by 40%'],
+                isParagraph: true,
                 store: (val) => {
                     state.currentExp.desc = val;
                     state.data.experience.push({...state.currentExp});
@@ -591,7 +641,7 @@
                 options: ['Yes, add another', 'No, continue'],
                 handler: (val) => {
                     if (val.includes('Yes')) {
-                        setTimeout(() => jumpToStep(7), 300); // Back to exp_title
+                        setTimeout(() => jumpToStep(7), 300);
                         return false;
                     }
                     return true;
@@ -633,7 +683,7 @@
                 suggestions: (() => {
                     const ind = detectIndustry(state.data.targetRole);
                     return keywords[ind].slice(0, 6);
-                }),
+                })(),
                 field: 'skills'
             }
         ];
@@ -644,6 +694,13 @@
             document.getElementById('mainApp').classList.remove('hidden');
             renderProgress();
             showCurrentStep();
+
+            // Setup textarea auto-resize
+            const textarea = document.getElementById('userInput');
+            textarea.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            });
         }
 
         function renderProgress() {
@@ -673,12 +730,21 @@
             updateProgress();
 
             let suggestions = step.suggestions || [];
+            if (step.getSuggestions) suggestions = step.getSuggestions();
             if (typeof suggestions === 'function') suggestions = suggestions();
 
-            addBotMessage(step.question, suggestions, step.options);
+            // For paragraph steps, use full-sentence styling
+            const isParagraph = step.isParagraph || false;
+
+            addBotMessage(step.question, suggestions, step.options, isParagraph);
+
+            // Reset textarea height
+            const textarea = document.getElementById('userInput');
+            textarea.style.height = 'auto';
+            textarea.rows = isParagraph ? 3 : 1;
         }
 
-        function addBotMessage(text, suggestions = [], options = []) {
+        function addBotMessage(text, suggestions = [], options = [], isParagraph = false) {
             const container = document.getElementById('chatMessages');
 
             const div = document.createElement('div');
@@ -688,9 +754,9 @@
 
             if (suggestions.length > 0) {
                 html += `<div class="suggestion-box">
-                    <div class="suggestion-title">💡 Suggestions</div>
+                    <div class="suggestion-title">💡 ${isParagraph ? 'Click to use template (or type your own):' : 'Suggestions'}</div>
                     <div class="suggestion-chips">
-                        ${suggestions.map(s => `<button class="chip" onclick="insertChip('${s}')">${s}</button>`).join('')}
+                        ${suggestions.map(s => `<button class="chip ${isParagraph ? 'full-sentence' : ''}" onclick="insertChip('${escapeJs(s)}')">${s}</button>`).join('')}
                     </div>
                 </div>`;
             }
@@ -699,7 +765,7 @@
                 html += `<div class="suggestion-box" style="background:white; border-color:var(--border);">
                     <div class="suggestion-title" style="color:var(--text-secondary);">Options</div>
                     <div class="suggestion-chips">
-                        ${options.map(o => `<button class="chip secondary" onclick="insertChip('${o}')">${o}</button>`).join('')}
+                        ${options.map(o => `<button class="chip secondary" onclick="insertChip('${escapeJs(o)}')">${o}</button>`).join('')}
                     </div>
                 </div>`;
             }
@@ -713,23 +779,30 @@
             const container = document.getElementById('chatMessages');
             const div = document.createElement('div');
             div.className = 'message user-message';
-            div.innerHTML = `<div class="message-bubble">${escapeHtml(text)}</div>`;
+            // Preserve line breaks in display
+            const formattedText = escapeHtml(text).replace(/\n/g, '<br>');
+            div.innerHTML = `<div class="message-bubble">${formattedText}</div>`;
             container.appendChild(div);
             container.scrollTop = container.scrollHeight;
         }
 
         function insertChip(text) {
-            document.getElementById('userInput').value = text;
-            handleSend();
+            const textarea = document.getElementById('userInput');
+            textarea.value = text;
+            // Trigger resize
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+            textarea.focus();
         }
 
         function handleSend() {
-            const input = document.getElementById('userInput');
-            const text = input.value.trim();
+            const textarea = document.getElementById('userInput');
+            const text = textarea.value.trim();
             if (!text) return;
 
             addUserMessage(text);
-            input.value = '';
+            textarea.value = '';
+            textarea.style.height = 'auto';
 
             const step = steps[state.step];
 
@@ -793,7 +866,7 @@
             if (d.name) score += 10;
             if (d.title) score += 10;
             if (d.email && d.phone) score += 10;
-            if (d.summary) score += 15;
+            if (d.summary && d.summary.length > 50) score += 15;
             if (d.experience.length > 0) score += 20;
             if (d.education.length > 0) score += 15;
             if (d.skills.length > 0) score += 10;
@@ -849,7 +922,9 @@
             `;
 
             if (d.summary) {
-                html += `<div class="section"><div class="section-title">Professional Summary</div><div class="entry-desc">${highlightKeywords(escapeHtml(d.summary))}</div></div>`;
+                // Preserve paragraphs in summary
+                const summaryHtml = escapeHtml(d.summary).replace(/\n/g, '<br>');
+                html += `<div class="section"><div class="section-title">Professional Summary</div><div class="summary-text">${highlightKeywords(summaryHtml)}</div></div>`;
             }
 
             if (d.experience.length > 0) {
@@ -895,7 +970,8 @@
         function formatDesc(text) {
             if (!text) return '';
             if (text.includes('•')) return '<ul>' + text.split('•').filter(s=>s.trim()).map(s => `<li>${highlightKeywords(escapeHtml(s.trim()))}</li>`).join('') + '</ul>';
-            return highlightKeywords(escapeHtml(text));
+            // Preserve line breaks
+            return highlightKeywords(escapeHtml(text).replace(/\n/g, '<br>'));
         }
 
         function highlightKeywords(text) {
@@ -913,11 +989,14 @@
             return d.innerHTML;
         }
 
+        function escapeJs(text) {
+            return text.replace(/'/g, "\\'").replace(/"/g, '\\"');
+        }
+
         function finishResume() {
             calculateScore();
             addBotMessage(`🎉 Resume Complete! ATS Score: ${state.atsScore}/100\n\nDownload your resume:`, [], ['Download PDF', 'Download Word']);
 
-            // Override next input for downloads
             steps.push({
                 id: 'download',
                 handler: (val) => {
